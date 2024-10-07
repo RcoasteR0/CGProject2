@@ -9,12 +9,85 @@
 void InitBuffer();
 GLvoid drawScene();
 GLvoid Reshape(int w, int h);
-
-const GLfloat triShape[3][3] = //삼각형 위치 값
-{ {-0.5, -0.5, 0.0 }, { 0.5, -0.5, 0.0 }, { 0.0, 0.5, 0.0 } };
-const GLfloat colors[3][3] = //삼각형 꼭지점 색상
-{ {1.0, 0.0, 0.0 }, { 0.0, 1.0, 0.0 }, { 0.0, 0.0, 1.0 } };
 GLuint vao, vbo[2];
+
+struct Coordinate { GLfloat x = 0, y = 0, z = 0; };
+struct RGB { GLfloat Red = 0, Green = 0, Blue = 0; };
+
+class Point
+{
+public:
+	Coordinate Shape;
+	RGB colors;
+
+	Point() {}
+
+	Point(Coordinate coord, RGB rgb)
+	{
+		Shape = coord;
+		colors = rgb;
+	}
+
+	~Point() {}
+
+};
+
+class Line
+{
+public:
+	Coordinate Shape[2];
+	RGB colors;
+
+	Line() {}
+
+	Line(Coordinate coord[2], RGB rgb)
+	{
+		Shape[0] = coord[0];
+		Shape[1] = coord[1];
+		colors = rgb;
+	}
+
+	~Line() {}
+
+};
+
+class Triangle
+{
+public:
+	Coordinate Shape[3];
+	RGB colors;
+
+	Triangle() {}
+
+	Triangle(Coordinate coord[3], RGB rgb)
+	{
+		Shape[0] = coord[0];
+		Shape[1] = coord[1];
+		Shape[2] = coord[2];
+		colors = rgb;
+	}
+
+	~Triangle() {}
+
+};
+
+class Rectangle
+{
+	Triangle shape[2];
+
+	Rectangle() {}
+
+	Rectangle(Coordinate coord[2][3], RGB rgb)
+	{
+		shape[0] = Triangle(coord[0], rgb);
+		shape[1] = Triangle(coord[1], rgb);
+	}
+};
+
+#ifdef Quiz1
+
+
+#endif // Quiz1
 
 //메인 함수
 void main (int argc, char** argv)	//윈도우 출력하고 콜백함수 설정
@@ -52,8 +125,10 @@ void InitBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
 	//변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다
-	//triShape 배열의 사이즈 : 9 * float
-	glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), triShape, GL_STATIC_DRAW);
+#ifdef Quiz1
+	//glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), triShape, GL_STATIC_DRAW);
+
+#endif // Quiz1
 
 	//좌표값을 attribute 인덱스 0 번에 명시한다 : 버텍스 당 3 * float
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -65,8 +140,10 @@ void InitBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 
 	//변수 colors 에서 버텍스 색상을 복사한다
-	//colors 배열의 사이즈 : 9 * float
-	glBufferData(GL_ARRAY_BUFFER, 9 * (sizeof GLfloat), colors, GL_STATIC_DRAW);
+#ifdef Quiz1
+	//glBufferData(GL_ARRAY_BUFFER, 9 * (sizeof GLfloat), colors, GL_STATIC_DRAW);
+
+#endif // Quiz1
 
 	//색상값을 attribute 인덱스 1 번에 명시한다 : 버텍스 당 3 * float
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
