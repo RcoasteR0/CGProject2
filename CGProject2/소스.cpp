@@ -1,14 +1,25 @@
 #define _CRT_SECURE_NO_WARNINGS
 
+#include <random>
 #include "Shader.h"
 
 #define Quiz1
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+using namespace std;
+
+random_device rd;
+mt19937 gen(rd());
+
 void InitBuffer();
 GLvoid drawScene();
 GLvoid Reshape(int w, int h);
+GLvoid Keyboard(unsigned char key, int x, int y);
+GLvoid Mouse(int button, int state, int x, int y);
+GLvoid Motion(int x, int y);
+GLvoid Timer(int value);
+
 GLuint vao, vbo[2];
 
 struct Coordinate { GLfloat x = 0, y = 0, z = 0; };
@@ -71,13 +82,14 @@ public:
 
 };
 
-class Rectangle
+class REctangle
 {
+public:
 	Triangle shape[2];
 
-	Rectangle() {}
+	REctangle() {}
 
-	Rectangle(Coordinate coord[2][3], RGB rgb)
+	REctangle(Coordinate coord[2][3], RGB rgb)
 	{
 		shape[0] = Triangle(coord[0], rgb);
 		shape[1] = Triangle(coord[1], rgb);
@@ -85,8 +97,38 @@ class Rectangle
 };
 
 #ifdef Quiz1
+enum Shape { NONE = -1, POINT, LINE, TRIANGLE, RECTANGLE };
+Point points[10];
+Line lines[10];
+Triangle triangles[10];
+REctangle rects[10];
+Shape shape[10];
+Shape selectedshape;
+int shapecount;
+int shapeindex;
 
+uniform_real_distribution<GLfloat> randcolor(0.0f, 1.0f);
 
+RGB RandomColor()
+{
+	return { randcolor(gen), randcolor(gen) , randcolor(gen) };
+}
+
+void Initialize()
+{
+	for (int i = 0; i < 10; ++i)
+	{
+		points[i] = Point();
+		lines[i] = Line();
+		triangles[i] = Triangle();
+		rects[i] = REctangle();
+		shape[i] = NONE;
+	}
+
+	selectedshape = NONE;
+	shapecount = 0;
+	shapeindex = 0;
+}
 #endif // Quiz1
 
 //메인 함수
@@ -105,10 +147,16 @@ void main (int argc, char** argv)	//윈도우 출력하고 콜백함수 설정
 
 	//세이더 읽어와서 세이더 프로그램 만들기
 	make_shaderProgram();		//세이더 프로그램 만들기
-	InitBuffer();
+
+#ifdef Quiz1
+	Initialize();
+#endif // Quiz1
 
 	glutDisplayFunc(drawScene);		//출력 콜백 함수
 	glutReshapeFunc(Reshape);
+	glutKeyboardFunc(Keyboard);
+	glutMouseFunc(Mouse);
+	glutMotionFunc(Motion);
 	glutMainLoop();
 }
 
@@ -176,4 +224,56 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 GLvoid Reshape(int w, int h) //--- 콜백 함수: 다시 그리기 콜백 함수
 {
 	glViewport(0, 0, w, h);
+}
+
+GLvoid Keyboard(unsigned char key, int x, int y)
+{
+#ifdef Quiz1
+	switch (key)
+	{
+	case 'p':
+		selectedshape = POINT;
+		break;
+	case 'l':
+		selectedshape = LINE;
+		break;
+	case 't':
+		selectedshape = TRIANGLE;
+		break;
+	case 'r':
+		selectedshape = RECTANGLE;
+		break;
+	case 'w':
+		break;
+	case 'a':
+		break;
+	case 's':
+		break;
+	case 'd':
+		break;
+	case 'c':
+		Initialize();
+		break;
+	default:
+		break;
+	}
+#endif // Quiz1
+
+	//프로그램 종료
+	if (key == 'q')
+		glutLeaveMainLoop();
+
+	glutPostRedisplay();
+}
+
+GLvoid Mouse(int button, int state, int x, int y)
+{
+	GLfloat mouseX = (x - WINDOW_WIDTH / 2) / (WINDOW_WIDTH / 2);
+	GLfloat mouseY = (WINDOW_HEIGHT / 2 - y) / (WINDOW_HEIGHT / 2);
+
+#ifdef Quiz1
+	points[shapecount] = Point({ mouseX, mouseY, 0.0f }, RandomColor());
+	InitBuffer();
+#endif // Quiz1
+
 }
