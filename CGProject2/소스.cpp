@@ -157,8 +157,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 	glUseProgram(shaderProgramID);
 
-	glPointSize(5.0);
-	glDrawArrays(GL_POINTS, 0, 1); //--- 렌더링하기: 0번 인덱스에서 1개의 버텍스를 사용하여 점 그리기
+	glDrawArrays(GL_TRIANGLES, 0, 3); //--- 렌더링하기: 0번 인덱스에서 1개의 버텍스를 사용하여 점 그리기
 
 	glutSwapBuffers(); // 화면에 출력하기
 }
