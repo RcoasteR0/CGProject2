@@ -17,7 +17,6 @@ GLvoid drawScene();
 GLvoid Reshape(int w, int h);
 GLvoid Keyboard(unsigned char key, int x, int y);
 GLvoid Mouse(int button, int state, int x, int y);
-GLvoid Motion(int x, int y);
 GLvoid Timer(int value);
 
 GLuint vao, vbo[2];
@@ -97,7 +96,7 @@ public:
 };
 
 #ifdef Quiz1
-enum Shape { NONE = -1, POINT, LINE, TRIANGLE, RECTANGLE };
+enum Shape { NONE, POiNT, LINE, TRIANGLE, RECTANGLE };
 Point points[10];
 Line lines[10];
 Triangle triangles[10];
@@ -106,6 +105,7 @@ Shape shape[10];
 Shape selectedshape;
 int shapecount;
 int shapeindex;
+int drawindex;
 
 uniform_real_distribution<GLfloat> randcolor(0.0f, 1.0f);
 
@@ -156,7 +156,6 @@ void main (int argc, char** argv)	//윈도우 출력하고 콜백함수 설정
 	glutReshapeFunc(Reshape);
 	glutKeyboardFunc(Keyboard);
 	glutMouseFunc(Mouse);
-	glutMotionFunc(Motion);
 	glutMainLoop();
 }
 
@@ -174,8 +173,38 @@ void InitBuffer()
 
 	//변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다
 #ifdef Quiz1
-	//glBufferData(GL_ARRAY_BUFFER, 9 * sizeof(GLfloat), triShape, GL_STATIC_DRAW);
+	GLfloat temp1[10][4][3];
+	for (int i = 0; i < shapecount; ++i)
+	{
+		switch (shape[i])
+		{
+		case POiNT:
+		{
+			temp1[i][0][0] = points[i].Shape.x;
+			temp1[i][0][1] = points[i].Shape.y;
+			temp1[i][0][2] = points[i].Shape.z;
+			break;
+		}
+		case LINE:
+		{
 
+			break;
+		}
+		case TRIANGLE:
+		{
+
+			break;
+		}
+		case RECTANGLE:
+		{
+
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	glBufferData(GL_ARRAY_BUFFER, sizeof(temp1), temp1, GL_STATIC_DRAW);
 #endif // Quiz1
 
 	//좌표값을 attribute 인덱스 0 번에 명시한다 : 버텍스 당 3 * float
@@ -189,7 +218,38 @@ void InitBuffer()
 
 	//변수 colors 에서 버텍스 색상을 복사한다
 #ifdef Quiz1
-	//glBufferData(GL_ARRAY_BUFFER, 9 * (sizeof GLfloat), colors, GL_STATIC_DRAW);
+	GLfloat temp2[10][4][3];
+	for (int i = 0; i < shapecount; ++i)
+	{
+		switch (shape[i])
+		{
+		case POiNT:
+		{
+			temp2[i][0][0] = points[i].colors.Red;
+			temp2[i][0][1] = points[i].colors.Green;
+			temp2[i][0][2] = points[i].colors.Blue;
+			break;
+		}
+		case LINE:
+		{
+
+			break;
+		}
+		case TRIANGLE:
+		{
+
+			break;
+		}
+		case RECTANGLE:
+		{
+
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	glBufferData(GL_ARRAY_BUFFER, sizeof(temp2), temp2, GL_STATIC_DRAW);
 
 #endif // Quiz1
 
@@ -211,11 +271,28 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 	glUseProgram(shaderProgramID);
 
-	//사용할 VAO 불러오기
 	glBindVertexArray(vao);
+#ifdef Quiz1
+	for (int i = 0; i < shapecount; ++i)
+	{
 
-	//삼각형 그리기
-	glDrawArrays(GL_TRIANGLES, 0, 3);
+		switch (shape[i])
+		{
+		case POiNT:
+			glPointSize(3.0f);
+			glDrawArrays(GL_POINT, i * 12, 1);
+			break;
+		case LINE:
+			break;
+		case TRIANGLE:
+			break;
+		case RECTANGLE:
+			break;
+		default:
+			break;
+		}
+	}
+#endif // Quiz1
 
 	glutSwapBuffers(); // 화면에 출력하기
 }
@@ -232,7 +309,7 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	switch (key)
 	{
 	case 'p':
-		selectedshape = POINT;
+		selectedshape = POiNT;
 		break;
 	case 'l':
 		selectedshape = LINE;
@@ -263,17 +340,51 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	if (key == 'q')
 		glutLeaveMainLoop();
 
+	InitBuffer();
 	glutPostRedisplay();
 }
 
 GLvoid Mouse(int button, int state, int x, int y)
 {
-	GLfloat mouseX = (x - WINDOW_WIDTH / 2) / (WINDOW_WIDTH / 2);
-	GLfloat mouseY = (WINDOW_HEIGHT / 2 - y) / (WINDOW_HEIGHT / 2);
+	GLfloat mouseX = (x - WINDOW_WIDTH / 2.0f) / (WINDOW_WIDTH / 2.0f);
+	GLfloat mouseY = (WINDOW_HEIGHT / 2.0f - y) / (WINDOW_HEIGHT / 2.0f);
 
 #ifdef Quiz1
-	points[shapecount] = Point({ mouseX, mouseY, 0.0f }, RandomColor());
-	InitBuffer();
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN && shapecount < 10)
+	{
+		switch (selectedshape)
+		{
+		case POiNT:
+		{
+			points[shapecount] = Point({ mouseX, mouseY, 0.0f }, {1.0f, 0.0f, 0.0f});
+			shape[shapecount] = POiNT;
+			shapecount++;
+			break;
+		}
+		case LINE:
+		{
+			Coordinate c[2] = {{mouseX, mouseY, 0.0f}, {mouseX, mouseY, 0.0f}};
+			lines[shapecount] = Line(c, RandomColor());
+			shape[shapecount] = LINE;
+			shapecount++;
+			break;
+		}
+		case TRIANGLE:
+		{
+
+			break;
+		}
+		case RECTANGLE:
+		{
+
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
 #endif // Quiz1
 
+	InitBuffer();
 }
