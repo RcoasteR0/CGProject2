@@ -148,6 +148,7 @@ void main (int argc, char** argv)	//윈도우 출력하고 콜백함수 설정
 
 	//세이더 읽어와서 세이더 프로그램 만들기
 	make_shaderProgram();		//세이더 프로그램 만들기
+	InitBuffer();
 
 #ifdef Quiz1
 	Initialize();
@@ -174,7 +175,7 @@ void InitBuffer()
 
 	//변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다
 #ifdef Quiz1
-	glBufferData(GL_ARRAY_BUFFER, shapecount * 9 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, shapecount * 18 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 #endif // Quiz1
 
 	//좌표값을 attribute 인덱스 0 번에 명시한다 : 버텍스 당 3 * float
@@ -277,6 +278,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	glUseProgram(shaderProgramID);
+	UpdateBuffer();
 
 	glBindVertexArray(vao);
 #ifdef Quiz1
