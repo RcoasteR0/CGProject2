@@ -13,6 +13,7 @@ random_device rd;
 mt19937 gen(rd());
 
 void InitBuffer();
+void UpdateBuffer();
 GLvoid drawScene();
 GLvoid Reshape(int w, int h);
 GLvoid Keyboard(unsigned char key, int x, int y);
@@ -173,38 +174,7 @@ void InitBuffer()
 
 	//변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다
 #ifdef Quiz1
-	GLfloat temp1[10][4][3];
-	for (int i = 0; i < shapecount; ++i)
-	{
-		switch (shape[i])
-		{
-		case POiNT:
-		{
-			temp1[i][0][0] = points[i].Shape.x;
-			temp1[i][0][1] = points[i].Shape.y;
-			temp1[i][0][2] = points[i].Shape.z;
-			break;
-		}
-		case LINE:
-		{
-
-			break;
-		}
-		case TRIANGLE:
-		{
-
-			break;
-		}
-		case RECTANGLE:
-		{
-
-			break;
-		}
-		default:
-			break;
-		}
-	}
-	glBufferData(GL_ARRAY_BUFFER, sizeof(temp1), temp1, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, shapecount * 9 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 #endif // Quiz1
 
 	//좌표값을 attribute 인덱스 0 번에 명시한다 : 버텍스 당 3 * float
@@ -258,6 +228,43 @@ void InitBuffer()
 
 	//attribute 인덱스 1 번을 사용 가능하게 함
 	glEnableVertexAttribArray(1);
+}
+
+void UpdateBuffer()
+{
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	for (int i = 0; i < shapecount; i++)
+	{
+		for (int i = 0; i < shapecount; ++i)
+		{
+			switch (shape[i])
+			{
+			case POiNT:
+			{
+				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 3 * sizeof(GLfloat), &(points[i].Shape));
+				break;
+			}
+			case LINE:
+			{
+				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 6 * sizeof(GLfloat), &(lines[i].Shape));
+				break;
+			}
+			case TRIANGLE:
+			{
+				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 9 * sizeof(GLfloat), &(triangles[i].Shape));
+				break;
+			}
+			case RECTANGLE:
+			{
+				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 9 * sizeof(GLfloat), &(rects[i].shape[0].Shape));
+				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat) + 9 * sizeof(GLfloat), 9 * sizeof(GLfloat), &(rects[i].shape[1].Shape));
+				break;
+			}
+			default:
+				break;
+			}
+		}
+	}
 }
 
 //--- 출력 콜백 함수
