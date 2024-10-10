@@ -20,7 +20,7 @@ GLvoid Keyboard(unsigned char key, int x, int y);
 GLvoid Mouse(int button, int state, int x, int y);
 GLvoid Timer(int value);
 
-GLuint vao, vbo[2];
+GLuint vao, vbo[2], ebo;
 
 struct Coordinate { GLfloat x = 0, y = 0, z = 0; };
 struct RGB { GLfloat Red = 0, Green = 0, Blue = 0; };
@@ -41,6 +41,17 @@ public:
 
 	~Point() {}
 
+	GLfloat* GetCoord()
+	{
+		GLfloat coord[3] = { Shape.x, Shape.y, Shape.z };
+		return coord;
+	}
+
+	GLfloat* GetColor()
+	{
+		GLfloat color[3] = { colors.Red, colors.Green, colors.Blue };
+		return color;
+	}
 };
 
 class Line
@@ -59,6 +70,20 @@ public:
 	}
 
 	~Line() {}
+
+	GLfloat* GetCoord()
+	{
+		GLfloat coord[6] = { Shape[0].x, Shape[0].y, Shape[0].z, 
+							Shape[1].x, Shape[1].y, Shape[1].z };
+		return coord;
+	}
+
+	GLfloat* GetColor()
+	{
+		GLfloat color[6] = { colors.Red, colors.Green, colors.Blue,
+							colors.Red, colors.Green, colors.Blue };
+		return color;
+	}
 
 };
 
@@ -80,24 +105,65 @@ public:
 
 	~Triangle() {}
 
+	GLfloat* GetCoord()
+	{
+		GLfloat coord[9] = { Shape[0].x, Shape[0].y, Shape[0].z,
+							Shape[1].x, Shape[1].y, Shape[1].z,
+							Shape[2].x, Shape[2].y, Shape[2].z };
+		return coord;
+	}
+
+	GLfloat* GetColor()
+	{
+		GLfloat color[9] = { colors.Red, colors.Green, colors.Blue,
+							colors.Red, colors.Green, colors.Blue,
+							colors.Red, colors.Green, colors.Blue };
+		return color;
+	}
+
 };
 
 class REctangle
 {
 public:
-	Triangle shape[2];
+	Coordinate Shape[4];
+	RGB colors;
 
 	REctangle() {}
 
-	REctangle(Coordinate coord[2][3], RGB rgb)
+	REctangle(Coordinate coord[4], RGB rgb)
 	{
-		shape[0] = Triangle(coord[0], rgb);
-		shape[1] = Triangle(coord[1], rgb);
+		Shape[0] = coord[0];
+		Shape[1] = coord[1];
+		Shape[2] = coord[2];
+		Shape[3] = coord[3];
+		colors = rgb;
 	}
+
+	~REctangle() {}
+
+	GLfloat* GetCoord()
+	{
+		GLfloat coord[12] = { Shape[0].x, Shape[0].y, Shape[0].z,
+							Shape[1].x, Shape[1].y, Shape[1].z, 
+							Shape[2].x, Shape[2].y, Shape[2].z, 
+							Shape[3].x, Shape[3].y, Shape[3].z };
+		return coord;
+	}
+
+	GLfloat* GetColor()
+	{
+		GLfloat color[12] = { colors.Red, colors.Green, colors.Blue,
+							colors.Red, colors.Green, colors.Blue,
+							colors.Red, colors.Green, colors.Blue,
+							colors.Red, colors.Green, colors.Blue };
+		return color;
+	}
+
 };
 
 #ifdef Quiz1
-enum Shape { NONE, POiNT, LINE, TRIANGLE, RECTANGLE };
+enum Shape { NONE = -1, POiNT, LINE, TRIANGLE, RECTANGLE };
 Point points[10];
 Line lines[10];
 Triangle triangles[10];
@@ -174,9 +240,7 @@ void InitBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
 	//변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다
-#ifdef Quiz1
-	glBufferData(GL_ARRAY_BUFFER, shapecount * 18 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
-#endif // Quiz1
+	glBufferData(GL_ARRAY_BUFFER, shapecount * 12 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 
 	//좌표값을 attribute 인덱스 0 번에 명시한다 : 버텍스 당 3 * float
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -188,39 +252,28 @@ void InitBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 
 	//변수 colors 에서 버텍스 색상을 복사한다
+	glBufferData(GL_ARRAY_BUFFER, shapecount * 12 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 #ifdef Quiz1
-	GLfloat temp2[10][4][3];
 	for (int i = 0; i < shapecount; ++i)
 	{
 		switch (shape[i])
 		{
 		case POiNT:
-		{
-			temp2[i][0][0] = points[i].colors.Red;
-			temp2[i][0][1] = points[i].colors.Green;
-			temp2[i][0][2] = points[i].colors.Blue;
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 3 * sizeof(GLfloat), points[i].GetColor());
 			break;
-		}
 		case LINE:
-		{
-
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 6 * sizeof(GLfloat), lines[i].GetColor());
 			break;
-		}
 		case TRIANGLE:
-		{
-
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 9 * sizeof(GLfloat), triangles[i].GetColor());
 			break;
-		}
 		case RECTANGLE:
-		{
-
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), rects[i].GetColor());
 			break;
-		}
 		default:
 			break;
 		}
 	}
-	glBufferData(GL_ARRAY_BUFFER, sizeof(temp2), temp2, GL_STATIC_DRAW);
 
 #endif // Quiz1
 
@@ -229,6 +282,18 @@ void InitBuffer()
 
 	//attribute 인덱스 1 번을 사용 가능하게 함
 	glEnableVertexAttribArray(1);
+
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	GLuint indices[10 * 4];
+	for (int i = 0; i < 10; i++)
+	{
+		indices[i * 4] = i * 4;
+		indices[i * 4 + 1] = i * 4 + 1;
+		indices[i * 4 + 2] = i * 4 + 2;
+		indices[i * 4 + 3] = i * 4 + 3;
+	}
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 }
 
 void UpdateBuffer()
@@ -236,35 +301,24 @@ void UpdateBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	for (int i = 0; i < shapecount; i++)
 	{
-		for (int i = 0; i < shapecount; ++i)
+		switch (shape[i])
 		{
-			switch (shape[i])
-			{
-			case POiNT:
-			{
-				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 3 * sizeof(GLfloat), &(points[i].Shape));
-				break;
-			}
-			case LINE:
-			{
-				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 6 * sizeof(GLfloat), &(lines[i].Shape));
-				break;
-			}
-			case TRIANGLE:
-			{
-				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 9 * sizeof(GLfloat), &(triangles[i].Shape));
-				break;
-			}
-			case RECTANGLE:
-			{
-				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 9 * sizeof(GLfloat), &(rects[i].shape[0].Shape));
-				glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat) + 9 * sizeof(GLfloat), 9 * sizeof(GLfloat), &(rects[i].shape[1].Shape));
-				break;
-			}
-			default:
-				break;
-			}
+		case POiNT:
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 3 * sizeof(GLfloat), points[i].GetCoord());
+			break;
+		case LINE:
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 6 * sizeof(GLfloat), lines[i].GetCoord());
+			break;
+		case TRIANGLE:
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 9 * sizeof(GLfloat), triangles[i].GetCoord());
+			break;
+		case RECTANGLE:
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), rects[i].GetCoord());
+			break;
+		default:
+			break;
 		}
+
 	}
 }
 
