@@ -192,7 +192,7 @@ void Initialize()
 		shape[i] = NONE;
 	}
 
-	selectedshape = NONE;
+	selectedshape = POiNT;
 	shapecount = 0;
 	shapeindex = 0;
 }
@@ -240,7 +240,9 @@ void InitBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 
 	//변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다
+#ifdef Quiz1
 	glBufferData(GL_ARRAY_BUFFER, shapecount * 12 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+#endif // Quiz1
 
 	//좌표값을 attribute 인덱스 0 번에 명시한다 : 버텍스 당 3 * float
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -252,29 +254,8 @@ void InitBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 
 	//변수 colors 에서 버텍스 색상을 복사한다
-	glBufferData(GL_ARRAY_BUFFER, shapecount * 12 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 #ifdef Quiz1
-	for (int i = 0; i < shapecount; ++i)
-	{
-		switch (shape[i])
-		{
-		case POiNT:
-			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 3 * sizeof(GLfloat), points[i].GetColor());
-			break;
-		case LINE:
-			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 6 * sizeof(GLfloat), lines[i].GetColor());
-			break;
-		case TRIANGLE:
-			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 9 * sizeof(GLfloat), triangles[i].GetColor());
-			break;
-		case RECTANGLE:
-			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), rects[i].GetColor());
-			break;
-		default:
-			break;
-		}
-	}
-
+	glBufferData(GL_ARRAY_BUFFER, 10 * 12 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 #endif // Quiz1
 
 	//색상값을 attribute 인덱스 1 번에 명시한다 : 버텍스 당 3 * float
@@ -283,6 +264,7 @@ void InitBuffer()
 	//attribute 인덱스 1 번을 사용 가능하게 함
 	glEnableVertexAttribArray(1);
 
+#ifdef Quiz1
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	GLuint indices[10 * 4];
@@ -294,10 +276,13 @@ void InitBuffer()
 		indices[i * 4 + 3] = i * 4 + 3;
 	}
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+#endif // Quiz1
+
 }
 
 void UpdateBuffer()
 {
+#ifdef Quiz1
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	for (int i = 0; i < shapecount; i++)
 	{
@@ -318,8 +303,31 @@ void UpdateBuffer()
 		default:
 			break;
 		}
-
 	}
+
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	for (int i = 0; i < shapecount; i++)
+	{
+		switch (shape[i])
+		{
+		case POiNT:
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 3 * sizeof(GLfloat), points[i].GetColor());
+			break;
+		case LINE:
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 6 * sizeof(GLfloat), lines[i].GetColor());
+			break;
+		case TRIANGLE:
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 9 * sizeof(GLfloat), triangles[i].GetColor());
+			break;
+		case RECTANGLE:
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), rects[i].GetColor());
+			break;
+		default:
+			break;
+		}
+	}
+#endif // Quiz1
+
 }
 
 //--- 출력 콜백 함수
@@ -329,7 +337,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 
 	rColor = gColor = bColor = 1.0; //--- 배경색을 하양색으로 설정
 	glClearColor(rColor, gColor, bColor, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(shaderProgramID);
 	UpdateBuffer();
@@ -338,14 +346,14 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 #ifdef Quiz1
 	for (int i = 0; i < shapecount; ++i)
 	{
-
 		switch (shape[i])
 		{
 		case POiNT:
-			glPointSize(3.0f);
-			glDrawArrays(GL_POINT, i * 12, 1);
+			glPointSize(5.0f);
+			glDrawElements(GL_POINT, 1, GL_UNSIGNED_INT, (void*)(i * 4 * sizeof(GLuint)));
 			break;
 		case LINE:
+			glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, (void*)(i * 4 * sizeof(GLuint)));
 			break;
 		case TRIANGLE:
 			break;
@@ -419,14 +427,14 @@ GLvoid Mouse(int button, int state, int x, int y)
 		{
 		case POiNT:
 		{
-			points[shapecount] = Point({ mouseX, mouseY, 0.0f }, {1.0f, 0.0f, 0.0f});
+			points[shapecount] = Point({ mouseX, mouseY, 0.0f }, RandomColor());
 			shape[shapecount] = POiNT;
 			shapecount++;
 			break;
 		}
 		case LINE:
 		{
-			Coordinate c[2] = {{mouseX, mouseY, 0.0f}, {mouseX, mouseY, 0.0f}};
+			Coordinate c[2] = {{mouseX - 0.05f, mouseY - 0.05f, 0.0f}, {mouseX + 0.05f, mouseY + 0.05f, 0.0f}};
 			lines[shapecount] = Line(c, RandomColor());
 			shape[shapecount] = LINE;
 			shapecount++;
