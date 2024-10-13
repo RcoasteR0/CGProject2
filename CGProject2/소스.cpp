@@ -41,16 +41,18 @@ public:
 
 	~Point() {}
 
-	GLfloat* GetCoord()
+	void GetCoord(GLfloat coord[])
 	{
-		GLfloat coord[3] = { Shape.x, Shape.y, Shape.z };
-		return coord;
+		coord[0] = Shape.x;
+		coord[1] = Shape.y;
+		coord[2] = Shape.z;
 	}
 
-	GLfloat* GetColor()
+	void GetColor(GLfloat color[])
 	{
-		GLfloat color[3] = { colors.Red, colors.Green, colors.Blue };
-		return color;
+		color[0] = colors.Red;
+		color[1] = colors.Green;
+		color[2] = colors.Blue;
 	}
 };
 
@@ -73,14 +75,14 @@ public:
 
 	GLfloat* GetCoord()
 	{
-		GLfloat coord[6] = { Shape[0].x, Shape[0].y, Shape[0].z, 
+		static GLfloat coord[6] = { Shape[0].x, Shape[0].y, Shape[0].z, 
 							Shape[1].x, Shape[1].y, Shape[1].z };
 		return coord;
 	}
 
 	GLfloat* GetColor()
 	{
-		GLfloat color[6] = { colors.Red, colors.Green, colors.Blue,
+		static GLfloat color[6] = { colors.Red, colors.Green, colors.Blue,
 							colors.Red, colors.Green, colors.Blue };
 		return color;
 	}
@@ -107,7 +109,7 @@ public:
 
 	GLfloat* GetCoord()
 	{
-		GLfloat coord[9] = { Shape[0].x, Shape[0].y, Shape[0].z,
+		static GLfloat coord[9] = { Shape[0].x, Shape[0].y, Shape[0].z,
 							Shape[1].x, Shape[1].y, Shape[1].z,
 							Shape[2].x, Shape[2].y, Shape[2].z };
 		return coord;
@@ -115,7 +117,7 @@ public:
 
 	GLfloat* GetColor()
 	{
-		GLfloat color[9] = { colors.Red, colors.Green, colors.Blue,
+		static GLfloat color[9] = { colors.Red, colors.Green, colors.Blue,
 							colors.Red, colors.Green, colors.Blue,
 							colors.Red, colors.Green, colors.Blue };
 		return color;
@@ -144,7 +146,7 @@ public:
 
 	GLfloat* GetCoord()
 	{
-		GLfloat coord[12] = { Shape[0].x, Shape[0].y, Shape[0].z,
+		static GLfloat coord[12] = { Shape[0].x, Shape[0].y, Shape[0].z,
 							Shape[1].x, Shape[1].y, Shape[1].z, 
 							Shape[2].x, Shape[2].y, Shape[2].z, 
 							Shape[3].x, Shape[3].y, Shape[3].z };
@@ -153,7 +155,7 @@ public:
 
 	GLfloat* GetColor()
 	{
-		GLfloat color[12] = { colors.Red, colors.Green, colors.Blue,
+		static GLfloat color[12] = { colors.Red, colors.Green, colors.Blue,
 							colors.Red, colors.Green, colors.Blue,
 							colors.Red, colors.Green, colors.Blue,
 							colors.Red, colors.Green, colors.Blue };
@@ -241,7 +243,7 @@ void InitBuffer()
 
 	//변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다
 #ifdef Quiz1
-	glBufferData(GL_ARRAY_BUFFER, shapecount * 12 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, 10 * 12 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
 #endif // Quiz1
 
 	//좌표값을 attribute 인덱스 0 번에 명시한다 : 버텍스 당 3 * float
@@ -286,10 +288,12 @@ void UpdateBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	for (int i = 0; i < shapecount; i++)
 	{
+		GLfloat temp[12];
 		switch (shape[i])
 		{
 		case POiNT:
-			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 3 * sizeof(GLfloat), points[i].GetCoord());
+			points[i].GetCoord(temp);
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 3 * sizeof(GLfloat), temp);
 			break;
 		case LINE:
 			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 6 * sizeof(GLfloat), lines[i].GetCoord());
@@ -308,10 +312,12 @@ void UpdateBuffer()
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 	for (int i = 0; i < shapecount; i++)
 	{
+		GLfloat temp[12];
 		switch (shape[i])
 		{
 		case POiNT:
-			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 3 * sizeof(GLfloat), points[i].GetColor());
+			points[i].GetColor(temp);
+			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 3 * sizeof(GLfloat), temp);
 			break;
 		case LINE:
 			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 6 * sizeof(GLfloat), lines[i].GetColor());
@@ -351,6 +357,7 @@ GLvoid drawScene() //--- 콜백 함수: 그리기 콜백 함수
 		case POiNT:
 			glPointSize(5.0f);
 			glDrawElements(GL_POINT, 1, GL_UNSIGNED_INT, (void*)(i * 4 * sizeof(GLuint)));
+			cout << "draw point" << points[i].Shape.x << " " << points[i].Shape.y << endl;
 			break;
 		case LINE:
 			glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, (void*)(i * 4 * sizeof(GLuint)));
@@ -411,7 +418,6 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	if (key == 'q')
 		glutLeaveMainLoop();
 
-	InitBuffer();
 	glutPostRedisplay();
 }
 
@@ -456,6 +462,4 @@ GLvoid Mouse(int button, int state, int x, int y)
 	}
 
 #endif // Quiz1
-
-	InitBuffer();
 }
