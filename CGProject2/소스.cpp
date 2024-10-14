@@ -4,7 +4,7 @@
 #include <cmath>
 #include "Shader.h"
 
-#define Quiz8
+#define Quiz9
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
@@ -59,13 +59,70 @@ int shapecount[4] = {};
 bool filltri = true;
 #endif // Quiz8
 
+#ifdef Quiz9
+enum Move { STOP, DIAGONAL, ZIGZAG, RECTSPIRAL, CIRCLESPIRAL };
+
+uniform_real_distribution<GLfloat> randsize(0.05, 0.3);
+Shape triangles[4];
+Shape origtriangles[4];
+Move movetype = STOP;
+
+void Initialize()
+{
+	triangles[0].shapecoord[0][0] = 0.5;
+	triangles[0].shapecoord[0][1] = 0.5 + sqrt(2) * 0.1;
+	triangles[0].shapecoord[1][0] = 0.5 - 0.1;
+	triangles[0].shapecoord[1][1] = 0.5 - 0.1;
+	triangles[0].shapecoord[2][0] = 0.5 + 0.1;
+	triangles[0].shapecoord[2][1] = 0.5 - 0.1;
+
+	triangles[1].shapecoord[0][0] = -0.5;
+	triangles[1].shapecoord[0][1] = 0.5 + sqrt(2) * 0.1;
+	triangles[1].shapecoord[1][0] = -0.5 - 0.1;
+	triangles[1].shapecoord[1][1] = 0.5 - 0.1;
+	triangles[1].shapecoord[2][0] = -0.5 + 0.1;
+	triangles[1].shapecoord[2][1] = 0.5 - 0.1;
+
+	triangles[2].shapecoord[0][0] = -0.5;
+	triangles[2].shapecoord[0][1] = -0.5 + sqrt(2) * 0.1;
+	triangles[2].shapecoord[1][0] = -0.5 - 0.1;
+	triangles[2].shapecoord[1][1] = -0.5 - 0.1;
+	triangles[2].shapecoord[2][0] = -0.5 + 0.1;
+	triangles[2].shapecoord[2][1] = -0.5 - 0.1;
+
+	triangles[3].shapecoord[0][0] = 0.5;
+	triangles[3].shapecoord[0][1] = -0.5 + sqrt(2) * 0.1;
+	triangles[3].shapecoord[1][0] = 0.5 - 0.1;
+	triangles[3].shapecoord[1][1] = -0.5 - 0.1;
+	triangles[3].shapecoord[2][0] = 0.5 + 0.1;
+	triangles[3].shapecoord[2][1] = -0.5 - 0.1;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		GLfloat randR, randG, randB;
+		RandomColor(randR, randG, randB);
+
+		for (int j = 0; j < 3; ++j)
+		{
+			triangles[i].shapecolor[j][0] = randR;
+			triangles[i].shapecolor[j][1] = randG;
+			triangles[i].shapecolor[j][2] = randB;
+		}
+
+		origtriangles[i] = triangles[i];
+	}
+
+	movetype = STOP;
+}
+#endif // Quiz8
+
 void main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(100, 100);
 	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
-	glutCreateWindow("Example7");
+	glutCreateWindow("Example");
 
 	glewExperimental = GL_TRUE;
 	if (glewInit() != GLEW_OK)
@@ -122,6 +179,9 @@ void main(int argc, char** argv)
 		shapecount[i] = 1;
 	}
 #endif // Quiz8
+#ifdef Quiz9
+	Initialize();
+#endif // Quiz9
 
 	make_shaderProgram();
 	InitBuffer();
@@ -180,6 +240,13 @@ GLvoid drawScene()
 	}
 
 #endif // Quiz8
+#ifdef Quiz9
+	for (int i = 0; i < 4; i++)
+	{
+		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)(i * 4 * sizeof(GLuint)));
+	}
+
+#endif // Quiz9
 
 	glutSwapBuffers();
 }
@@ -330,6 +397,28 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		break;
 	}
 #endif // Quiz8
+#ifdef Quiz9
+	switch (key)
+	{
+	case '1':
+		movetype = DIAGONAL;
+		break;
+	case '2':
+		movetype = ZIGZAG;
+		break;
+	case '3':
+		movetype = RECTSPIRAL;
+		break;
+	case '4':
+		movetype = CIRCLESPIRAL;
+		break;
+	case 'r':
+		Initialize();
+		break;
+	default:
+		break;
+	}
+#endif // Quiz9
 
 	if(key == 'q')
 		glutLeaveMainLoop();
@@ -487,6 +576,47 @@ GLvoid Mouse(int button, int state, int x, int y)
 	}
 
 #endif // Quiz8
+#ifdef Quiz9
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		GLfloat size = randsize(gen);
+		int index = 0;
+		if (fx >= 0 && fy >= 0)
+		{
+			index = 0;
+		}
+		else if (fx < 0 && fy >= 0)
+		{
+			index = 1;
+		}
+		else if (fx < 0 && fy < 0)
+		{
+			index = 2;
+		}
+		else if (fx >= 0 && fy < 0)
+		{
+			index = 3;
+		}
+
+		triangles[index].shapecoord[0][0] = fx;
+		triangles[index].shapecoord[0][1] = fy + sqrt(2) * size;
+		triangles[index].shapecoord[1][0] = fx - size;
+		triangles[index].shapecoord[1][1] = fy - size;
+		triangles[index].shapecoord[2][0] = fx + size;
+		triangles[index].shapecoord[2][1] = fy - size;
+
+		GLfloat randR, randG, randB;
+		RandomColor(randR, randG, randB);
+
+		for (int j = 0; j < 3; ++j)
+		{
+			triangles[index].shapecolor[j][0] = randR;
+			triangles[index].shapecolor[j][1] = randG;
+			triangles[index].shapecolor[j][2] = randB;
+		}
+	}
+
+#endif // Quiz9
 
 }
 
@@ -508,6 +638,9 @@ void InitBuffer()
 #ifdef Quiz8
 	glBufferData(GL_ARRAY_BUFFER, SHAPES * 4 * 12 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 #endif // Quiz8
+#ifdef Quiz9
+	glBufferData(GL_ARRAY_BUFFER, 4 * 12 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+#endif // Quiz9
 
 	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -549,6 +682,20 @@ void InitBuffer()
 		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), colors);
 	}
 #endif // Quiz8
+#ifdef Quiz9
+	glBufferData(GL_ARRAY_BUFFER, 4 * 12 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	GLfloat colors[4][3];
+	for (int i = 0; i < 4; i++)
+	{
+		for (int z = 0; z < 4; z++)
+		{
+			colors[z][0] = 0;
+			colors[z][1] = 0;
+			colors[z][2] = 0;
+		}
+		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), colors);
+	}
+#endif // Quiz9
 
 	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -582,6 +729,19 @@ void InitBuffer()
 	}
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 #endif // Quiz8
+#ifdef Quiz9
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	GLuint indices[4 * 4];
+	for (int i = 0; i < 4; i++)
+	{
+		indices[i * 4] = i * 4;
+		indices[i * 4 + 1] = i * 4 + 1;
+		indices[i * 4 + 2] = i * 4 + 2;
+		indices[i * 4 + 3] = i * 4 + 3;
+	}
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+#endif // Quiz9
 
 }
 
@@ -613,4 +773,16 @@ void UpdateBuffer()
 			glBufferSubData(GL_ARRAY_BUFFER, (i * SHAPES + j) * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), triangles[i][j].shapecolor);
 	}
 #endif Quiz8
+#ifdef Quiz9
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	for (int i = 0; i < 4; i++)
+	{
+		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), triangles[i].shapecoord);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	for (int i = 0; i < 4; i++)
+	{
+		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), triangles[i].shapecolor);
+	}
+#endif Quiz9
 }
