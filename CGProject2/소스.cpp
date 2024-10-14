@@ -3,33 +3,23 @@
 #include <random>
 #include "Shader.h"
 
-#define Quiz1
+#define Quiz7
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
 using namespace std;
 
-#define SHAPES 10
-GLfloat triShape[3][3]; //--- 삼각형 위치 값
-GLfloat colors[3][3]; //--- 삼각형 꼭지점 색상
+const int SHAPES = 10;
 GLuint vao, vbo[2], ebo;
-GLvoid drawScene(GLvoid);
 void convertXY(int x, int y, float& fx, float& fy);
-int random();
 void UpdateBuffer();
+void InitBuffer();
 void Color(float& color);
 GLvoid Mouse(int button, int state, int x, int y);
-void InitBuffer();
-void make_vertexShaders();
-void make_fragmentShaders();
-void make_shaderProgram();
-GLchar* vertexSource, * fragmentSource; //--- 소스코드 저장 변수
 GLvoid Keyboard(unsigned char key, int x, int y);
+
 float bGCr = 1.0, bGCg = 1.0, bGCb = 1.0;
 GLuint shaderPID;
-GLvoid Reshape(int w, int h);
-#define WIDTH 800
-#define HEIGHT 600
 
 struct Shape
 {
@@ -38,15 +28,25 @@ struct Shape
 	bool states = false;
 };
 
+#ifdef Quiz7
+int randomIndex()
+{
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> random(0, 9);
+	return random(gen);
+}
+
 Shape shape[10];
 int shapecount = 0;
+#endif // Quiz7
 
 void main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(0, 0);
-	glutInitWindowSize(WIDTH, HEIGHT);
+	glutInitWindowSize(WINDOW_WIDTH, WINDOW_HEIGHT);
 	glutCreateWindow("Example7");
 
 	glewExperimental = GL_TRUE;
@@ -74,6 +74,7 @@ GLvoid drawScene()
 	glUseProgram(shaderProgramID);
 	UpdateBuffer();
 	glBindVertexArray(vao);
+#ifdef Quiz7
 	for (int i = 0; i < 10; i++)
 	{
 		if (shape[i].states)
@@ -97,6 +98,8 @@ GLvoid drawScene()
 			}
 		}
 	}
+#endif // Quiz7
+
 	glutSwapBuffers();
 }
 
@@ -107,18 +110,10 @@ GLvoid Reshape(int w, int h)
 
 void convertXY(int x, int y, float& fx, float& fy)
 {
-	int w = WIDTH;
-	int h = HEIGHT;
+	int w = WINDOW_WIDTH;
+	int h = WINDOW_HEIGHT;
 	fx = (float)((x - (float)w / 2.0) * (float)(1.0 / (float)(w / 2.0)));
 	fy = -(float)((y - (float)h / 2.0) * (float)(1.0 / (float)(h / 2.0)));
-}
-
-int random()
-{
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> random(0, 9);
-	return random(gen);
 }
 
 void Color(float& color)
@@ -131,7 +126,8 @@ void Color(float& color)
 
 GLvoid Keyboard(unsigned char key, int x, int y)
 {
-	int a = random();
+#ifdef Quiz7
+	int a = randomIndex();
 	switch (key)
 	{
 	case 'p':
@@ -246,10 +242,12 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 			shape[i].states = false;
 		}
 		break;
-	case 'q':
-		glutLeaveMainLoop();
-		break;
 	}
+#endif // Quiz7
+
+	if(key == 'q')
+		glutLeaveMainLoop();
+
 	glutPostRedisplay();
 }
 
@@ -257,7 +255,9 @@ GLvoid Mouse(int button, int state, int x, int y)
 {
 	float fx = 0.0, fy = 0.0;
 	convertXY(x, y, fx, fy);
-	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+
+#ifdef Quiz7
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN && shape[shapecount].state)
 	{
 		if (shapecount < 10)
 		{
@@ -297,7 +297,8 @@ GLvoid Mouse(int button, int state, int x, int y)
 			shape[shapecount].state = shape[shapecount - 1].state;
 		}
 	}
-	glutPostRedisplay();
+#endif // Quiz7
+
 }
 
 void InitBuffer()
@@ -309,22 +310,31 @@ void InitBuffer()
 	glGenBuffers(2, vbo); //--- 2개의 VBO를 지정하고 할당하기
 	//--- 1번째 VBO를 활성화하여 바인드하고, 버텍스 속성 (좌표값)을 저장
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+
 	//--- 변수 diamond 에서 버텍스 데이터 값을 버퍼에 복사한다.
 	//--- triShape 배열의 사이즈: 9 * float
+#ifdef Quiz7
 	glBufferData(GL_ARRAY_BUFFER, SHAPES * 12 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+#endif // Quiz7
+
 	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
 	//--- attribute 인덱스 0번을 사용가능하게 함
 	glEnableVertexAttribArray(0);
 
 	//--- 2번째 VBO를 활성화 하여 바인드 하고, 버텍스 속성 (색상)을 저장
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+
 	//--- 변수 colors에서 버텍스 색상을 복사한다.
 	//--- colors 배열의 사이즈: 9 *float
 	glBufferData(GL_ARRAY_BUFFER, SHAPES * 12 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+
+#ifdef Quiz7
+	GLfloat colors[4][3];
 	for (int i = 0; i < SHAPES; i++)
 	{
-		for (int z = 0; z < 3; z++)
+		for (int z = 0; z < 4; z++)
 		{
 			for (int j = 0; j < 3; j++)
 			{
@@ -333,11 +343,15 @@ void InitBuffer()
 		}
 		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), colors);
 	}
+#endif // Quiz7
+
 	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
 	//--- attribute 인덱스 1번을 사용 가능하게 함.
 	glEnableVertexAttribArray(1);
 
+#ifdef Quiz7
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 	GLuint indices[SHAPES * 4];
@@ -349,13 +363,17 @@ void InitBuffer()
 		indices[i * 4 + 3] = i * 4 + 3;
 	}
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+#endif // Quiz7
+
 }
 
 void UpdateBuffer()
 {
+#ifdef Quiz7
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
 	for (int i = 0; i < SHAPES; i++)
 	{
 		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), shape[i].shapecoord);
 	}
+#endif Quiz7
 }
