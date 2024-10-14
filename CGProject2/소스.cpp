@@ -172,7 +172,7 @@ GLvoid drawScene()
 
 	for (int i = 0; i < 4; i++)
 	{
-		for (int j = 0; j < SHAPES; ++j)
+		for (int j = 0; j < shapecount[i]; ++j)
 		{
 			if (triangles[i][j].states)
 				glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)((i * SHAPES + j) * 4 * sizeof(GLuint)));
@@ -435,6 +435,55 @@ GLvoid Mouse(int button, int state, int x, int y)
 		triangles[index][0].state = 3;
 		triangles[index][0].states = true;
 		shapecount[index] = 1;
+	}
+	if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
+	{
+		GLfloat size = randsize(gen);
+		int index = 0;
+		if (fx >= 0 && fy >= 0)
+		{
+			index = 0;
+		}
+		else if (fx < 0 && fy >= 0)
+		{
+			index = 1;
+		}
+		else if (fx < 0 && fy < 0)
+		{
+			index = 2;
+		}
+		else if (fx >= 0 && fy < 0)
+		{
+			index = 3;
+		}
+
+		if (shapecount[index] >= 3)
+		{
+			for (int i = 0; i < 2; ++i)
+				triangles[index][i] = triangles[index][i + 1];
+			--shapecount[index];
+		}
+
+		triangles[index][shapecount[index]].shapecoord[0][0] = fx;
+		triangles[index][shapecount[index]].shapecoord[0][1] = fy + sqrt(2) * size;
+		triangles[index][shapecount[index]].shapecoord[1][0] = fx - size;
+		triangles[index][shapecount[index]].shapecoord[1][1] = fy - size;
+		triangles[index][shapecount[index]].shapecoord[2][0] = fx + size;
+		triangles[index][shapecount[index]].shapecoord[2][1] = fy - size;
+
+		GLfloat randR, randG, randB;
+		RandomColor(randR, randG, randB);
+
+		for (int j = 0; j < 3; ++j)
+		{
+			triangles[index][shapecount[index]].shapecolor[j][0] = randR;
+			triangles[index][shapecount[index]].shapecolor[j][1] = randG;
+			triangles[index][shapecount[index]].shapecolor[j][2] = randB;
+		}
+
+		triangles[index][shapecount[index]].state = 3;
+		triangles[index][shapecount[index]].states = true;
+		shapecount[index] += 1;
 	}
 
 #endif // Quiz8
