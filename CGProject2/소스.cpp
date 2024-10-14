@@ -52,7 +52,7 @@ int shapecount = 0;
 #endif // Quiz7
 
 #ifdef Quiz8
-uniform_real_distribution<GLfloat> randsize(0.1, 0.4);
+uniform_real_distribution<GLfloat> randsize(0.05, 0.3);
 const int SHAPES = 3;
 Shape triangles[4][3];
 int shapecount[4] = {};
@@ -374,6 +374,51 @@ GLvoid Mouse(int button, int state, int x, int y)
 		}
 	}
 #endif // Quiz7
+#ifdef Quiz8
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		GLfloat size = randsize(gen);
+		int index = 0;
+		if (fx >= 0 && fy >= 0)
+		{
+			index = 0;
+		}
+		else if (fx < 0 && fy >= 0)
+		{
+			index = 1;
+		}
+		else if (fx < 0 && fy < 0)
+		{
+			index = 2;
+		}
+		else if (fx >= 0 && fy < 0)
+		{
+			index = 3;
+		}
+
+		triangles[index][0].shapecoord[0][0] = fx;
+		triangles[index][0].shapecoord[0][1] = fy + sqrt(2) * size;
+		triangles[index][0].shapecoord[1][0] = fx - size;
+		triangles[index][0].shapecoord[1][1] = fy - size;
+		triangles[index][0].shapecoord[2][0] = fx + size;
+		triangles[index][0].shapecoord[2][1] = fy - size;
+
+		GLfloat randR, randG, randB;
+		RandomColor(randR, randG, randB);
+
+		for (int j = 0; j < 3; ++j)
+		{
+			triangles[index][0].shapecolor[j][0] = randR;
+			triangles[index][0].shapecolor[j][1] = randG;
+			triangles[index][0].shapecolor[j][2] = randB;
+		}
+
+		triangles[index][0].state = 3;
+		triangles[index][0].states = true;
+		shapecount[index] = 1;
+	}
+
+#endif // Quiz8
 
 }
 
