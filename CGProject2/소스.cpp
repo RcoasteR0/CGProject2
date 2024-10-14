@@ -9,12 +9,14 @@
 
 using namespace std;
 
+random_device rd;
+mt19937 gen(rd());
+
 const int SHAPES = 10;
 GLuint vao, vbo[2], ebo;
 void convertXY(int x, int y, float& fx, float& fy);
 void UpdateBuffer();
 void InitBuffer();
-void Color(float& color);
 GLvoid Mouse(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
 
@@ -23,23 +25,36 @@ GLuint shaderPID;
 
 struct Shape
 {
-	GLfloat shapecoord[4][3] = { { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0, 0, 0} };
+	GLfloat shapecoord[4][3] = { { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 } };
+	GLfloat shapecolor[4][3] = { { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 } };
 	int state = 0;
 	bool states = false;
 };
 
+void RandomColor(float& colorR, float& colorG, float& colorB)
+{
+	uniform_real_distribution<float> random(0, 1);
+	colorR = random(gen);
+	colorG = random(gen);
+	colorB = random(gen);
+}
+
 #ifdef Quiz7
 int randomIndex()
 {
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_int_distribution<int> random(0, 9);
+	uniform_int_distribution<int> random(0, 9);
 	return random(gen);
 }
 
 Shape shape[10];
 int shapecount = 0;
 #endif // Quiz7
+
+#ifdef Quiz8
+uniform_real_distribution<GLfloat> randsize(0.1, 0.4);
+Shape triangles[4][3];
+int shapecount[4] = {};
+#endif // Quiz8
 
 void main(int argc, char** argv)
 {
@@ -57,6 +72,10 @@ void main(int argc, char** argv)
 	}
 	else
 		std::cout << "GLEW Initialized\n";
+
+#ifdef Quiz8
+	
+#endif // Quiz8
 
 	make_shaderProgram();
 	InitBuffer();
@@ -114,14 +133,6 @@ void convertXY(int x, int y, float& fx, float& fy)
 	int h = WINDOW_HEIGHT;
 	fx = (float)((x - (float)w / 2.0) * (float)(1.0 / (float)(w / 2.0)));
 	fy = -(float)((y - (float)h / 2.0) * (float)(1.0 / (float)(h / 2.0)));
-}
-
-void Color(float& color)
-{
-	std::random_device rd;
-	std::mt19937 gen(rd());
-	std::uniform_real_distribution<float> random(0, 1);
-	color = random(gen);
 }
 
 GLvoid Keyboard(unsigned char key, int x, int y)
@@ -261,6 +272,9 @@ GLvoid Mouse(int button, int state, int x, int y)
 	{
 		if (shapecount < 10)
 		{
+			GLfloat randR, randG, randB;
+			RandomColor(randR, randG, randB);
+
 			switch (shape[shapecount].state)
 			{
 			case 1:
@@ -291,6 +305,12 @@ GLvoid Mouse(int button, int state, int x, int y)
 				shape[shapecount].shapecoord[3][0] = fx + 0.25;
 				shape[shapecount].shapecoord[3][1] = fy + 0.25;
 				break;
+			}
+			for (int i = 0; i < shape[shapecount].state; ++i)
+			{
+				shape[shapecount].shapecolor[i][0] = randR;
+				shape[shapecount].shapecolor[i][1] = randG;
+				shape[shapecount].shapecolor[i][2] = randB;
 			}
 			shape[shapecount].states = true;
 			shapecount++;
@@ -336,10 +356,9 @@ void InitBuffer()
 	{
 		for (int z = 0; z < 4; z++)
 		{
-			for (int j = 0; j < 3; j++)
-			{
-				Color(colors[z][j]);
-			}
+			colors[z][0] = 0;
+			colors[z][1] = 0;
+			colors[z][2] = 0;
 		}
 		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), colors);
 	}
@@ -374,6 +393,11 @@ void UpdateBuffer()
 	for (int i = 0; i < SHAPES; i++)
 	{
 		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), shape[i].shapecoord);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	for (int i = 0; i < SHAPES; i++)
+	{
+		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), shape[i].shapecolor);
 	}
 #endif Quiz7
 }
