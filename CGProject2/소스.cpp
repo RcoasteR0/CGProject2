@@ -56,6 +56,7 @@ uniform_real_distribution<GLfloat> randsize(0.05, 0.3);
 const int SHAPES = 3;
 Shape triangles[4][3];
 int shapecount[4] = {};
+bool filltri = true;
 #endif // Quiz8
 
 void main(int argc, char** argv)
@@ -164,6 +165,11 @@ GLvoid drawScene()
 	}
 #endif // Quiz7
 #ifdef Quiz8
+	if (filltri)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+	else
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < SHAPES; ++j)
@@ -311,6 +317,19 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		break;
 	}
 #endif // Quiz7
+#ifdef Quiz8
+	switch (key)
+	{
+	case 'a':
+		filltri = true;
+		break;
+	case 'b':
+		filltri = false;
+		break;
+	default:
+		break;
+	}
+#endif // Quiz8
 
 	if(key == 'q')
 		glutLeaveMainLoop();
