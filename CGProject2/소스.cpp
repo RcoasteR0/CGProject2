@@ -19,6 +19,7 @@ void UpdateBuffer();
 void InitBuffer();
 GLvoid Mouse(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
+GLvoid Timer(int value);
 
 float bGCr = 1.0, bGCg = 1.0, bGCb = 1.0;
 GLuint shaderPID;
@@ -66,6 +67,8 @@ uniform_real_distribution<GLfloat> randsize(0.05, 0.3);
 Shape triangles[4];
 Shape origtriangles[4];
 Move movetype = STOP;
+float moveX[4] = {};
+float moveY[4] = {};
 
 void Initialize()
 {
@@ -113,6 +116,32 @@ void Initialize()
 	}
 
 	movetype = STOP;
+}
+
+void MoveOrigPos()
+{
+	for (int i = 0; i < 4; ++i)
+	{
+		triangles[i] = origtriangles[i];
+	}
+}
+
+bool CheckColideWall_Left(Shape tri)
+{
+	return tri.shapecoord[1][0] <= -1.0f;
+}
+bool CheckColideWall_Right(Shape tri)
+{
+	return tri.shapecoord[2][0] >= 1.0f;
+}
+
+bool CheckColideWall_Top(Shape tri)
+{
+	return tri.shapecoord[0][1] >= 1.0f;
+}
+bool CheckColideWall_Bottom(Shape tri)
+{
+	return tri.shapecoord[1][1] <= -1.0f;
 }
 #endif // Quiz8
 
@@ -189,6 +218,7 @@ void main(int argc, char** argv)
 	glutKeyboardFunc(Keyboard);
 	glutMouseFunc(Mouse);
 	glutReshapeFunc(Reshape);
+	glutTimerFunc(1000 / 60, Timer, 1);
 	glutMainLoop();
 }
 
@@ -402,6 +432,12 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	{
 	case '1':
 		movetype = DIAGONAL;
+		MoveOrigPos();
+		for (int i = 0; i < 4; ++i)
+		{
+			moveX[i] = 0.05f;
+			moveY[i] = 0.05f;
+		}
 		break;
 	case '2':
 		movetype = ZIGZAG;
@@ -618,6 +654,46 @@ GLvoid Mouse(int button, int state, int x, int y)
 
 #endif // Quiz9
 
+}
+
+GLvoid Timer(int value)
+{
+#ifdef Quiz9
+	switch (movetype)
+	{
+	case DIAGONAL:
+		for (int i = 0; i < 4; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				triangles[i].shapecoord[j][0] += moveX[i];
+				triangles[i].shapecoord[j][1] += moveY[i];
+			}
+
+			if (CheckColideWall_Right(triangles[i]))
+				moveX[i] = -0.05f;
+			else if (CheckColideWall_Left(triangles[i]))
+				moveX[i] = 0.05f;
+
+			if (CheckColideWall_Top(triangles[i]))
+				moveY[i] = -0.05f;
+			if (CheckColideWall_Bottom(triangles[i]))
+				moveY[i] = 0.05f;
+		}
+		break;
+	case ZIGZAG:
+		break;
+	case RECTSPIRAL:
+		break;
+	case CIRCLESPIRAL:
+		break;
+	default:
+		break;
+	}
+#endif // Quiz9
+
+	glutPostRedisplay();
+	glutTimerFunc(1000 / 60, Timer, 1);
 }
 
 void InitBuffer()
