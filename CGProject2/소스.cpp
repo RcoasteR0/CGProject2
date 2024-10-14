@@ -491,13 +491,13 @@ void UpdateBuffer()
 	for (int i = 0; i < 4; i++)
 	{
 		for(int j = 0; j < SHAPES; ++j)
-			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), triangles[i][j].shapecoord);
+			glBufferSubData(GL_ARRAY_BUFFER, (i * SHAPES + j) * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), triangles[i][j].shapecoord);
 	}
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
 	for (int i = 0; i < 4; i++)
 	{
 		for (int j = 0; j < SHAPES; ++j)
-			glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), triangles[i][j].shapecolor);
+			glBufferSubData(GL_ARRAY_BUFFER, (i * SHAPES + j) * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), triangles[i][j].shapecolor);
 	}
 #endif Quiz8
 }
