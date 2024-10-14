@@ -441,6 +441,13 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		break;
 	case '2':
 		movetype = ZIGZAG;
+		MoveOrigPos();
+		for (int i = 0; i < 4; ++i)
+		{
+			moveX[i] = 0.05f;
+			moveY[i] = 0.3f;
+		}
+
 		break;
 	case '3':
 		movetype = RECTSPIRAL;
@@ -677,11 +684,48 @@ GLvoid Timer(int value)
 
 			if (CheckColideWall_Top(triangles[i]))
 				moveY[i] = -0.05f;
-			if (CheckColideWall_Bottom(triangles[i]))
+			else if (CheckColideWall_Bottom(triangles[i]))
 				moveY[i] = 0.05f;
 		}
 		break;
 	case ZIGZAG:
+		for (int i = 0; i < 4; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				triangles[i].shapecoord[j][0] += moveX[i];
+			}
+
+			if (CheckColideWall_Right(triangles[i]))
+			{
+				moveX[i] = -0.05f;
+
+				if (CheckColideWall_Top(triangles[i]))
+					moveY[i] = -0.3f;
+				else if (CheckColideWall_Bottom(triangles[i]))
+					moveY[i] = 0.3f;
+
+				for (int j = 0; j < 3; ++j)
+				{
+					triangles[i].shapecoord[j][1] += moveY[i];
+				}
+			}
+			else if (CheckColideWall_Left(triangles[i]))
+			{
+				moveX[i] = 0.05f;
+
+				if (CheckColideWall_Top(triangles[i]))
+					moveY[i] = -0.3f;
+				else if (CheckColideWall_Bottom(triangles[i]))
+					moveY[i] = 0.3f;
+
+				for (int j = 0; j < 3; ++j)
+				{
+					triangles[i].shapecoord[j][1] += moveY[i];
+				}
+			}
+		}
+
 		break;
 	case RECTSPIRAL:
 		break;
