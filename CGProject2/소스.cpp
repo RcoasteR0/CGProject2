@@ -657,6 +657,8 @@ GLvoid Mouse(int button, int state, int x, int y)
 			triangles[index].shapecolor[j][1] = randG;
 			triangles[index].shapecolor[j][2] = randB;
 		}
+
+		origtriangles[index] = triangles[index];
 	}
 
 #endif // Quiz9
