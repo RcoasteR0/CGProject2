@@ -1,4 +1,5 @@
 #define _CRT_SECURE_NO_WARNINGS
+#define _USE_MATH_DEFINES
 
 #include <random>
 #include <cmath>
@@ -69,6 +70,10 @@ Shape origtriangles[4];
 Move movetype = STOP;
 float moveX[4] = {};
 float moveY[4] = {};
+float limitX[2] = {};
+float limitY[2] = {};
+float radius = 0.0f;
+int angle = 0;
 
 void Initialize()
 {
@@ -126,22 +131,22 @@ void MoveOrigPos()
 	}
 }
 
-bool CheckColideWall_Left(Shape tri)
+bool CheckColideWall_Left(Shape tri, float wall = -1.0f)
 {
-	return tri.shapecoord[1][0] <= -1.0f;
+	return tri.shapecoord[1][0] <= wall;
 }
-bool CheckColideWall_Right(Shape tri)
+bool CheckColideWall_Right(Shape tri, float wall = 1.0f)
 {
-	return tri.shapecoord[2][0] >= 1.0f;
+	return tri.shapecoord[2][0] >= wall;
 }
 
-bool CheckColideWall_Top(Shape tri)
+bool CheckColideWall_Top(Shape tri, float wall = 1.0f)
 {
-	return tri.shapecoord[0][1] >= 1.0f;
+	return tri.shapecoord[0][1] >= wall;
 }
-bool CheckColideWall_Bottom(Shape tri)
+bool CheckColideWall_Bottom(Shape tri, float wall = -1.0f)
 {
-	return tri.shapecoord[1][1] <= -1.0f;
+	return tri.shapecoord[1][1] <= wall;
 }
 #endif // Quiz8
 
@@ -451,9 +456,23 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		break;
 	case '3':
 		movetype = RECTSPIRAL;
+		MoveOrigPos();
+		for (int i = 0; i < 4; ++i)
+		{
+			moveX[i] = 0.05f;
+			moveY[i] = 0.0f;
+		}
+		limitX[0] = 0.0f;
+		limitX[1] = 0.0f;
+		limitY[0] = 0.0f;
+		limitY[1] = 0.0f;
+
 		break;
 	case '4':
 		movetype = CIRCLESPIRAL;
+		MoveOrigPos();
+		radius = 0.0f;
+		angle = 0;
 		break;
 	case 'r':
 		Initialize();
@@ -727,11 +746,55 @@ GLvoid Timer(int value)
 				}
 			}
 		}
-
 		break;
 	case RECTSPIRAL:
+		for (int i = 0; i < 4; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				triangles[i].shapecoord[j][0] += moveX[i];
+				triangles[i].shapecoord[j][1] += moveY[i];
+			}
+
+			if (moveX[i] > 0 && CheckColideWall_Right(triangles[i], 1.0f - limitX[0]))
+			{
+				moveX[i] = 0.0f;
+				moveY[i] = 0.05f;
+				limitX[0] += 0.1f;
+			}
+			else if (moveX[i] < 0 && CheckColideWall_Left(triangles[i], -1.0f + limitX[1]))
+			{
+				moveX[i] = 0.0f;
+				moveY[i] = -0.05f;
+				limitX[1] += 0.1f;
+			}
+			else if (moveY[i] > 0 && CheckColideWall_Top(triangles[i], 1.0f - limitY[0]))
+			{
+				moveX[i] = -0.05f;
+				moveY[i] = 0.0f;
+				limitY[0] += 0.1f;
+			}
+			else if (moveY[i] < 0 && CheckColideWall_Bottom(triangles[i], -1.0f + limitY[1]))
+			{
+				moveX[i] = 0.05f;
+				moveY[i] = 0.0f;
+				limitY[1] += 0.1f;
+			}
+		}
 		break;
 	case CIRCLESPIRAL:
+		for (int i = 0; i < 4; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				triangles[i].shapecoord[j][0] = origtriangles[i].shapecoord[j][0] + sin(angle * M_PI / 180) * radius;
+				triangles[i].shapecoord[j][1] = origtriangles[i].shapecoord[j][1] + cos(angle * M_PI / 180) * radius;
+			}
+			radius += 0.001f;
+			angle += 1;
+			if (angle >= 360)
+				angle = 0;
+		}
 		break;
 	default:
 		break;
