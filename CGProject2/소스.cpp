@@ -785,10 +785,17 @@ GLvoid Timer(int value)
 	case CIRCLESPIRAL:
 		for (int i = 0; i < 4; ++i)
 		{
+			GLfloat x = (origtriangles[i].shapecoord[0][0] + origtriangles[i].shapecoord[1][0] + origtriangles[i].shapecoord[2][0]) / 3;
+			GLfloat y = (origtriangles[i].shapecoord[0][1] + origtriangles[i].shapecoord[1][1] + origtriangles[i].shapecoord[2][1]) / 3;
+
 			for (int j = 0; j < 3; ++j)
 			{
-				triangles[i].shapecoord[j][0] = origtriangles[i].shapecoord[j][0] + sin(angle * M_PI / 180) * radius;
-				triangles[i].shapecoord[j][1] = origtriangles[i].shapecoord[j][1] + cos(angle * M_PI / 180) * radius;
+				triangles[i].shapecoord[j][0] = radius * sin(angle * M_PI / 180)
+					+ (origtriangles[i].shapecoord[j][0] - x) * cos(-angle * M_PI / 180)
+					- (origtriangles[i].shapecoord[j][1] - y) * sin(-angle * M_PI / 180) + x;
+				triangles[i].shapecoord[j][1] = radius * cos(angle * M_PI / 180)
+					+ (origtriangles[i].shapecoord[j][0] - x) * sin(-angle * M_PI / 180)
+					+ (origtriangles[i].shapecoord[j][1] - y) * cos(-angle * M_PI / 180) + y;
 			}
 			radius += 0.001f;
 			angle += 1;
