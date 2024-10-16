@@ -5,7 +5,7 @@
 #include <cmath>
 #include "Shader.h"
 
-#define Quiz9
+#define Quiz10
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define FPS 60
@@ -19,6 +19,7 @@ GLuint vao, vbo[2], ebo;
 void convertXY(int x, int y, float& fx, float& fy);
 void UpdateBuffer();
 void InitBuffer();
+void Initialize();
 GLvoid Mouse(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
 GLvoid Timer(int value);
@@ -195,6 +196,36 @@ bool CheckColideWall_Bottom(Old_Shape tri, float wall = -1.0f)
 }
 #endif // Quiz8
 
+#ifdef Quiz10
+const int pointcount = 180;
+GLfloat points[5][pointcount][3];
+float radius;
+int angle;
+int spiralcount;
+int progress;
+bool draw;
+bool line;
+
+void Initialize()
+{
+	for (int i = 0; i < 5; ++i)
+	{
+		for (int j = 0; j < pointcount; ++j)
+		{
+			points[i][j][0] = 0.0f;
+			points[i][j][1] = 0.0f;
+			points[i][j][2] = 0.0f;
+		}
+	}
+	radius = 0.0f;
+	angle = 0;
+	spiralcount = 1;
+	progress = 0;
+	draw = false;
+	line = false;
+}
+#endif // Quiz10
+
 void main(int argc, char** argv)
 {
 	glutInit(&argc, argv);
@@ -258,9 +289,7 @@ void main(int argc, char** argv)
 		shapecount[i] = 1;
 	}
 #endif // Quiz8
-#ifdef Quiz9
 	Initialize();
-#endif // Quiz9
 
 	make_shaderProgram();
 	InitBuffer();
@@ -325,8 +354,14 @@ GLvoid drawScene()
 	{
 		glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, (void*)(i * 4 * sizeof(GLuint)));
 	}
-
 #endif // Quiz9
+#ifdef Quiz10
+	glPointSize(5.0);
+	for (int i = 0; i < progress; i++)
+	{
+		glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, (void*)(i * sizeof(GLuint)));
+	}
+#endif // Quiz10
 
 	glutSwapBuffers();
 }
@@ -526,6 +561,37 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		break;
 	}
 #endif // Quiz9
+#ifdef Quiz10
+	switch (key)
+	{
+	case 'p':
+		line = false;
+		break;
+	case 'l':
+		line = true;
+		break;
+	case '1':
+		spiralcount = 1;
+		break;
+	case '2':
+		spiralcount = 2;
+		break;
+	case '3':
+		spiralcount = 3;
+		break;
+	case '4':
+		spiralcount = 4;
+		break;
+	case '5':
+		spiralcount = 5;
+		break;
+	case 'r':
+		Initialize();
+		break;
+	default:
+		break;
+	}
+#endif // Quiz10
 
 	if(key == 'q')
 		glutLeaveMainLoop();
@@ -726,7 +792,21 @@ GLvoid Mouse(int button, int state, int x, int y)
 	}
 
 #endif // Quiz9
+#ifdef Quiz10
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		points[0][0][0] = fx;
+		points[0][0][1] = fy;
 
+		progress = 0;
+		radius = 0;
+		angle = 0;
+		if (draw)
+			RandomColor(bGCr, bGCg, bGCb);
+		else
+			draw = true;
+	}
+#endif // Quiz10
 }
 
 GLvoid Timer(int value)
@@ -852,6 +932,29 @@ GLvoid Timer(int value)
 		break;
 	}
 #endif // Quiz9
+#ifdef Quiz10
+	if (draw)
+	{
+		if (progress <= pointcount / 2)
+		{
+			points[0][progress][0] = points[0][0][0] + radius * cos(angle * M_PI / 180);
+			points[0][progress][1] = points[0][0][1] + radius * sin(angle * M_PI / 180);
+
+			radius += 0.1f / (pointcount / 2);
+			angle += 1080 / (pointcount / 2);
+			++progress;
+		}
+		else if(progress < pointcount)
+		{
+			points[0][progress][0] = points[0][0][0] + 0.2f + radius * cos((angle + 180) * M_PI / 180);
+			points[0][progress][1] = points[0][0][1] + radius * sin(angle * M_PI / 180);
+
+			radius -= 0.1f / (pointcount - (pointcount / 2));
+			angle += 1080 / (pointcount - (pointcount / 2));
+			++progress;
+		}
+	}
+#endif // Quiz10
 
 	glutPostRedisplay();
 	glutTimerFunc(1000 / FPS, Timer, 1);
@@ -878,6 +981,9 @@ void InitBuffer()
 #ifdef Quiz9
 	glBufferData(GL_ARRAY_BUFFER, 4 * 12 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 #endif // Quiz9
+#ifdef Quiz10
+	glBufferData(GL_ARRAY_BUFFER, pointcount * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+#endif // Quiz10
 
 	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -933,6 +1039,18 @@ void InitBuffer()
 		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), colors);
 	}
 #endif // Quiz9
+#ifdef Quiz10
+	glBufferData(GL_ARRAY_BUFFER, pointcount * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+	GLfloat colors[3];
+	for (int i = 0; i < pointcount; i++)
+	{
+		colors[0] = 0;
+		colors[1] = 0;
+		colors[2] = 0;
+
+		glBufferSubData(GL_ARRAY_BUFFER, i * 3 * sizeof(GLfloat), 3 * sizeof(GLfloat), colors);
+	}
+#endif // Quiz10
 
 	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -979,6 +1097,16 @@ void InitBuffer()
 	}
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 #endif // Quiz9
+#ifdef Quiz10
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	GLuint indices[pointcount];
+	for (int i = 0; i < pointcount; i++)
+	{
+		indices[i] = i;
+	}
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+#endif // Quiz10
 
 }
 
@@ -1022,4 +1150,12 @@ void UpdateBuffer()
 		glBufferSubData(GL_ARRAY_BUFFER, i * 12 * sizeof(GLfloat), 12 * sizeof(GLfloat), triangles[i].shapecolor);
 	}
 #endif Quiz9
+#ifdef Quiz10
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	for (int i = 0; i < pointcount; i++)
+	{
+		glBufferSubData(GL_ARRAY_BUFFER, i * 3 * sizeof(GLfloat), 3 * sizeof(GLfloat), points[0][i]);
+	}
+#endif // Quiz10
+
 }
