@@ -357,10 +357,7 @@ GLvoid drawScene()
 #endif // Quiz9
 #ifdef Quiz10
 	glPointSize(5.0);
-	for (int i = 0; i < progress; i++)
-	{
-		glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, (void*)(i * sizeof(GLuint)));
-	}
+	glDrawElements(GL_POINTS, progress - 1, GL_UNSIGNED_INT, (void*)(sizeof(GLuint)));
 #endif // Quiz10
 
 	glutSwapBuffers();
@@ -940,16 +937,16 @@ GLvoid Timer(int value)
 			points[0][progress][0] = points[0][0][0] + radius * cos(angle * M_PI / 180);
 			points[0][progress][1] = points[0][0][1] + radius * sin(angle * M_PI / 180);
 
-			radius += 0.1f / (pointcount / 2);
+			radius += 0.2f / (pointcount / 2);
 			angle += 1080 / (pointcount / 2);
 			++progress;
 		}
 		else if(progress < pointcount)
 		{
-			points[0][progress][0] = points[0][0][0] + 0.2f + radius * cos((angle + 180) * M_PI / 180);
+			points[0][progress][0] = points[0][0][0] + 0.4f + radius * cos((angle + 180) * M_PI / 180);
 			points[0][progress][1] = points[0][0][1] + radius * sin(angle * M_PI / 180);
 
-			radius -= 0.1f / (pointcount - (pointcount / 2));
+			radius -= 0.2f / (pointcount - (pointcount / 2));
 			angle += 1080 / (pointcount - (pointcount / 2));
 			++progress;
 		}
