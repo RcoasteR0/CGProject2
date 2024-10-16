@@ -5,7 +5,7 @@
 #include <cmath>
 #include "Shader.h"
 
-#define Quiz8
+#define Quiz11
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define FPS 60
@@ -77,6 +77,11 @@ public:
 	}
 
 	~Shape() {}
+
+	void Draw(int i)
+	{
+		glDrawElements(GL_TRIANGLE_STRIP, points, GL_UNSIGNED_INT, (void*)(i * 4 * sizeof(GLuint)));
+	}
 };
 
 void RandomColor(float& colorR, float& colorG, float& colorB)
@@ -236,6 +241,32 @@ void Initialize()
 	bGCr = 1.0, bGCg = 1.0, bGCb = 1.0;
 }
 #endif // Quiz10
+#ifdef Quiz11
+enum Drawtype{ ALL, LINE, TRIANGLE, RECTANGLE, PENTAGON };
+Shape shapes[4];
+Drawtype type;
+int timer;
+
+void Initialize()
+{
+	GLfloat temp1[6][3] = { { -0.75f, 0.25f, 0.0f }, { -0.25f, 0.25f, 0.0f }, { -0.25f, 0.25f, 0.0f } };
+	GLfloat temp2[6][3] = { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.75f, 0.75f, 0.0f }, { 0.75f, 0.75f, 0.0f } };
+	GLfloat temp3[6][3] = { { -0.75f, -0.75f, 0.0f }, { -0.25f, -0.75f, 0.0f }, { -0.25f, -0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f }, { -0.75f, -0.5f, 0.0f } };
+	GLfloat temp4[6][3] = { { 0.4f, -0.75f, 0.0f }, { 0.6f, -0.75f, 0.0f }, { 0.75f, -0.5f, 0.0f }, { 0.5f, -0.25f, 0.0f }, { 0.25f, -0.25f, 0.0f } };
+	GLfloat red[3] = { 1.0f, 0.0f, 0.0f };
+	GLfloat blue[3] = { 0.0f, 0.0f, 1.0f };
+	GLfloat yellow[3] = { 1.0f, 1.0f, 0.0f };
+	GLfloat magenta[3] = { 1.0f, 0.0f, 1.0f };
+
+	shapes[0] = Shape(3, temp1, red);
+	shapes[1] = Shape(4, temp2, blue);
+	shapes[2] = Shape(5, temp3, yellow);
+	shapes[3] = Shape(5, temp4, magenta);
+
+	type = ALL;
+	timer = 0;
+}
+#endif // Quiz11
 
 void main(int argc, char** argv)
 {
@@ -383,6 +414,12 @@ GLvoid drawScene()
 		}
 	}
 #endif // Quiz10
+#ifdef Quiz11
+	for (int i = 0; i < 4; i++)
+	{
+		shapes[i].Draw(i);
+	}
+#endif // Quiz11
 
 	glutSwapBuffers();
 }
@@ -1039,6 +1076,9 @@ void InitBuffer()
 #ifdef Quiz10
 	glBufferData(GL_ARRAY_BUFFER, pointcount * 5 * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 #endif // Quiz10
+#ifdef Quiz11
+	glBufferData(GL_ARRAY_BUFFER, 4 * 18 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+#endif // Quiz11
 
 	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -1106,6 +1146,20 @@ void InitBuffer()
 		glBufferSubData(GL_ARRAY_BUFFER, i * 3 * sizeof(GLfloat), 3 * sizeof(GLfloat), colors);
 	}
 #endif // Quiz10
+#ifdef Quiz11
+	glBufferData(GL_ARRAY_BUFFER, 4 * 18 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+	GLfloat colors[6][3];
+	for (int i = 0; i < 4; i++)
+	{
+		for (int z = 0; z < 6; z++)
+		{
+			colors[z][0] = 0;
+			colors[z][1] = 0;
+			colors[z][2] = 0;
+		}
+		glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 18 * sizeof(GLfloat), colors);
+	}
+#endif // Quiz11
 
 	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -1162,6 +1216,16 @@ void InitBuffer()
 	}
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 #endif // Quiz10
+#ifdef Quiz11
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	GLuint indices[4 * 6];
+	for (int i = 0; i < 24; i++)
+	{
+		indices[i] = i;
+	}
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+#endif // Quiz11
 
 }
 
@@ -1215,5 +1279,17 @@ void UpdateBuffer()
 		}
 	}
 #endif // Quiz10
+#ifdef Quiz11
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	for (int i = 0; i < 4; i++)
+	{
+		glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 18 * sizeof(GLfloat), shapes[i].shapecoord);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	for (int i = 0; i < 4; i++)
+	{
+		glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 18 * sizeof(GLfloat), shapes[i].shapecolor);
+	}
+#endif Quiz11
 
 }
