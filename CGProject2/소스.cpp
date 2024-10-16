@@ -223,6 +223,7 @@ void Initialize()
 	progress = 0;
 	draw = false;
 	line = false;
+	bGCr = 1.0, bGCg = 1.0, bGCb = 1.0;
 }
 #endif // Quiz10
 
@@ -356,8 +357,21 @@ GLvoid drawScene()
 	}
 #endif // Quiz9
 #ifdef Quiz10
-	glPointSize(5.0);
-	glDrawElements(GL_POINTS, progress - 1, GL_UNSIGNED_INT, (void*)(sizeof(GLuint)));
+	glPointSize(3.0f);
+	if (line)
+	{
+		for (int i = 0; i < spiralcount; i++)
+		{
+			glDrawElements(GL_LINE_STRIP, progress, GL_UNSIGNED_INT, (void*)(i * pointcount * sizeof(GLuint)));
+		}
+	}
+	else
+	{
+		for (int i = 0; i < spiralcount; i++)
+		{
+			glDrawElements(GL_POINTS, progress, GL_UNSIGNED_INT, (void*)(i * pointcount * sizeof(GLuint)));
+		}
+	}
 #endif // Quiz10
 
 	glutSwapBuffers();
@@ -568,22 +582,24 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		line = true;
 		break;
 	case '1':
+		Initialize();
 		spiralcount = 1;
 		break;
 	case '2':
+		Initialize();
 		spiralcount = 2;
 		break;
 	case '3':
+		Initialize();
 		spiralcount = 3;
 		break;
 	case '4':
+		Initialize();
 		spiralcount = 4;
 		break;
 	case '5':
-		spiralcount = 5;
-		break;
-	case 'r':
 		Initialize();
+		spiralcount = 5;
 		break;
 	default:
 		break;
@@ -794,6 +810,30 @@ GLvoid Mouse(int button, int state, int x, int y)
 	{
 		points[0][0][0] = fx;
 		points[0][0][1] = fy;
+		for (int i = 1; i < spiralcount; ++i)
+		{
+			switch (i)
+			{
+			case 1:
+				points[1][0][0] = fx + 0.4f;
+				points[1][0][1] = fy + 0.4f;
+				break;
+			case 2:
+				points[2][0][0] = fx - 0.4f;
+				points[2][0][1] = fy + 0.4f;
+				break;
+			case 3:
+				points[3][0][0] = fx - 0.4f;
+				points[3][0][1] = fy - 0.4f;
+				break;
+			case 4:
+				points[4][0][0] = fx + 0.4f;
+				points[4][0][1] = fy - 0.4f;
+				break;
+			default:
+				break;
+			}
+		}
 
 		progress = 0;
 		radius = 0;
@@ -932,20 +972,28 @@ GLvoid Timer(int value)
 #ifdef Quiz10
 	if (draw)
 	{
+		for (int i = 0; i < spiralcount; ++i)
+		{
+			if (progress <= pointcount / 2)
+			{
+				points[i][progress][0] = points[i][0][0] + radius * cos(angle * M_PI / 180);
+				points[i][progress][1] = points[i][0][1] + radius * sin(angle * M_PI / 180);
+
+			}
+			else if (progress < pointcount)
+			{
+				points[i][progress][0] = points[i][0][0] + 0.4f + radius * cos((angle + 180) * M_PI / 180);
+				points[i][progress][1] = points[i][0][1] + radius * sin(angle * M_PI / 180);
+			}
+		}
 		if (progress <= pointcount / 2)
 		{
-			points[0][progress][0] = points[0][0][0] + radius * cos(angle * M_PI / 180);
-			points[0][progress][1] = points[0][0][1] + radius * sin(angle * M_PI / 180);
-
 			radius += 0.2f / (pointcount / 2);
 			angle += 1080 / (pointcount / 2);
 			++progress;
 		}
-		else if(progress < pointcount)
+		else if (progress < pointcount)
 		{
-			points[0][progress][0] = points[0][0][0] + 0.4f + radius * cos((angle + 180) * M_PI / 180);
-			points[0][progress][1] = points[0][0][1] + radius * sin(angle * M_PI / 180);
-
 			radius -= 0.2f / (pointcount - (pointcount / 2));
 			angle += 1080 / (pointcount - (pointcount / 2));
 			++progress;
@@ -979,7 +1027,7 @@ void InitBuffer()
 	glBufferData(GL_ARRAY_BUFFER, 4 * 12 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 #endif // Quiz9
 #ifdef Quiz10
-	glBufferData(GL_ARRAY_BUFFER, pointcount * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, pointcount * 5 * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 #endif // Quiz10
 
 	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
@@ -1037,9 +1085,9 @@ void InitBuffer()
 	}
 #endif // Quiz9
 #ifdef Quiz10
-	glBufferData(GL_ARRAY_BUFFER, pointcount * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, pointcount * 5 * 3 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 	GLfloat colors[3];
-	for (int i = 0; i < pointcount; i++)
+	for (int i = 0; i < pointcount * 5; i++)
 	{
 		colors[0] = 0;
 		colors[1] = 0;
@@ -1097,8 +1145,8 @@ void InitBuffer()
 #ifdef Quiz10
 	glGenBuffers(1, &ebo);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-	GLuint indices[pointcount];
-	for (int i = 0; i < pointcount; i++)
+	GLuint indices[pointcount * 5];
+	for (int i = 0; i < pointcount * 5; i++)
 	{
 		indices[i] = i;
 	}
@@ -1149,9 +1197,12 @@ void UpdateBuffer()
 #endif Quiz9
 #ifdef Quiz10
 	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
-	for (int i = 0; i < pointcount; i++)
+	for (int i = 0; i < 5; i++)
 	{
-		glBufferSubData(GL_ARRAY_BUFFER, i * 3 * sizeof(GLfloat), 3 * sizeof(GLfloat), points[0][i]);
+		for (int j = 0; j < pointcount; ++j)
+		{
+			glBufferSubData(GL_ARRAY_BUFFER, (i * pointcount + j) * 3 * sizeof(GLfloat), 3 * sizeof(GLfloat), points[i][j]);
+		}
 	}
 #endif // Quiz10
 
