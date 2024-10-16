@@ -8,6 +8,7 @@
 #define Quiz9
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
+#define FPS 60
 
 using namespace std;
 
@@ -25,12 +26,56 @@ GLvoid Timer(int value);
 float bGCr = 1.0, bGCg = 1.0, bGCb = 1.0;
 GLuint shaderPID;
 
-struct Shape
+struct Old_Shape
 {
 	GLfloat shapecoord[4][3] = { { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 } };
 	GLfloat shapecolor[4][3] = { { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 }, { 0.0, 0.0, 0.0 } };
 	int state = 0;
 	bool states = false;
+};
+
+class Shape
+{
+public:
+	GLfloat shapecoord[6][3];
+	GLfloat shapecolor[6][3];
+	int points;
+
+	Shape()
+	{
+		for (int i = 0; i < 6; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				shapecoord[i][j] = 0.0f;
+				shapecolor[i][j] = 0.0f;
+			}
+		}
+		points = 0;
+	}
+
+	Shape(int state, GLfloat coord[][3], GLfloat color[3])
+	{
+		for (int i = 0; i < 6; ++i)
+		{
+			for (int j = 0; j < 3; ++j)
+			{
+				if (i > state)
+				{
+					shapecoord[i][j] = 0.0f;
+					shapecolor[i][j] = 0.0f;
+				}
+				else
+				{
+					shapecoord[i][j] = coord[i][j];
+					shapecolor[i][j] = color[j];
+				}
+			}
+		}
+		points = state;
+	}
+
+	~Shape() {}
 };
 
 void RandomColor(float& colorR, float& colorG, float& colorB)
@@ -48,7 +93,7 @@ int randomIndex()
 	return random(gen);
 }
 
-Shape shape[10];
+Old_Shape shape[10];
 const int SHAPES = 10;
 int shapecount = 0;
 #endif // Quiz7
@@ -56,7 +101,7 @@ int shapecount = 0;
 #ifdef Quiz8
 uniform_real_distribution<GLfloat> randsize(0.05, 0.3);
 const int SHAPES = 3;
-Shape triangles[4][3];
+Old_Shape triangles[4][3];
 int shapecount[4] = {};
 bool filltri = true;
 #endif // Quiz8
@@ -65,8 +110,8 @@ bool filltri = true;
 enum Move { STOP, DIAGONAL, ZIGZAG, RECTSPIRAL, CIRCLESPIRAL };
 
 uniform_real_distribution<GLfloat> randsize(0.05, 0.3);
-Shape triangles[4];
-Shape origtriangles[4];
+Old_Shape triangles[4];
+Old_Shape origtriangles[4];
 Move movetype = STOP;
 float moveX[4] = {};
 float moveY[4] = {};
@@ -131,20 +176,20 @@ void MoveOrigPos()
 	}
 }
 
-bool CheckColideWall_Left(Shape tri, float wall = -1.0f)
+bool CheckColideWall_Left(Old_Shape tri, float wall = -1.0f)
 {
 	return tri.shapecoord[1][0] <= wall;
 }
-bool CheckColideWall_Right(Shape tri, float wall = 1.0f)
+bool CheckColideWall_Right(Old_Shape tri, float wall = 1.0f)
 {
 	return tri.shapecoord[2][0] >= wall;
 }
 
-bool CheckColideWall_Top(Shape tri, float wall = 1.0f)
+bool CheckColideWall_Top(Old_Shape tri, float wall = 1.0f)
 {
 	return tri.shapecoord[0][1] >= wall;
 }
-bool CheckColideWall_Bottom(Shape tri, float wall = -1.0f)
+bool CheckColideWall_Bottom(Old_Shape tri, float wall = -1.0f)
 {
 	return tri.shapecoord[1][1] <= wall;
 }
@@ -223,7 +268,7 @@ void main(int argc, char** argv)
 	glutKeyboardFunc(Keyboard);
 	glutMouseFunc(Mouse);
 	glutReshapeFunc(Reshape);
-	glutTimerFunc(1000 / 60, Timer, 1);
+	glutTimerFunc(1000 / FPS, Timer, 1);
 	glutMainLoop();
 }
 
@@ -736,9 +781,9 @@ GLvoid Timer(int value)
 				moveX[i] = 0.05f;
 
 				if (CheckColideWall_Top(triangles[i]))
-					moveY[i] = -0.3f;
+					moveY[i] = -0.1f;
 				else if (CheckColideWall_Bottom(triangles[i]))
-					moveY[i] = 0.3f;
+					moveY[i] = 0.1f;
 
 				for (int j = 0; j < 3; ++j)
 				{
@@ -809,7 +854,7 @@ GLvoid Timer(int value)
 #endif // Quiz9
 
 	glutPostRedisplay();
-	glutTimerFunc(1000 / 60, Timer, 1);
+	glutTimerFunc(1000 / FPS, Timer, 1);
 }
 
 void InitBuffer()
