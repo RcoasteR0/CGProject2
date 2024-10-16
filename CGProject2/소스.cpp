@@ -5,7 +5,7 @@
 #include <cmath>
 #include "Shader.h"
 
-#define Quiz10
+#define Quiz8
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define FPS 60
@@ -96,7 +96,12 @@ int randomIndex()
 
 Old_Shape shape[10];
 const int SHAPES = 10;
-int shapecount = 0;
+int shapecount;
+
+void Initialize()
+{
+	shapecount = 0;
+}
 #endif // Quiz7
 
 #ifdef Quiz8
@@ -104,7 +109,12 @@ uniform_real_distribution<GLfloat> randsize(0.05, 0.3);
 const int SHAPES = 3;
 Old_Shape triangles[4][3];
 int shapecount[4] = {};
-bool filltri = true;
+bool filltri;
+
+void Initialize()
+{
+	filltri = true;
+}
 #endif // Quiz8
 
 #ifdef Quiz9
