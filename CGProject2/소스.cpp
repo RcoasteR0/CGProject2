@@ -80,7 +80,7 @@ public:
 
 	void Draw(int i)
 	{
-		glDrawElements(GL_TRIANGLE_STRIP, points, GL_UNSIGNED_INT, (void*)(i * 4 * sizeof(GLuint)));
+		glDrawElements(GL_TRIANGLE_FAN, points, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(GLuint)));
 	}
 };
 
@@ -249,10 +249,10 @@ int timer;
 
 void Initialize()
 {
-	GLfloat temp1[6][3] = { { -0.75f, 0.25f, 0.0f }, { -0.25f, 0.25f, 0.0f }, { -0.25f, 0.25f, 0.0f } };
+	GLfloat temp1[6][3] = { { -0.75f, 0.25f, 0.0f }, { -0.25f, 0.75f, 0.0f }, { -0.25f, 0.74f, 0.0f } };
 	GLfloat temp2[6][3] = { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.75f, 0.75f, 0.0f }, { 0.75f, 0.75f, 0.0f } };
 	GLfloat temp3[6][3] = { { -0.75f, -0.75f, 0.0f }, { -0.25f, -0.75f, 0.0f }, { -0.25f, -0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f }, { -0.75f, -0.5f, 0.0f } };
-	GLfloat temp4[6][3] = { { 0.4f, -0.75f, 0.0f }, { 0.6f, -0.75f, 0.0f }, { 0.75f, -0.5f, 0.0f }, { 0.5f, -0.25f, 0.0f }, { 0.25f, -0.25f, 0.0f } };
+	GLfloat temp4[6][3] = { { 0.4f, -0.75f, 0.0f }, { 0.6f, -0.75f, 0.0f }, { 0.75f, -0.5f, 0.0f }, { 0.5f, -0.25f, 0.0f }, { 0.25f, -0.5f, 0.0f } };
 	GLfloat red[3] = { 1.0f, 0.0f, 0.0f };
 	GLfloat blue[3] = { 0.0f, 0.0f, 1.0f };
 	GLfloat yellow[3] = { 1.0f, 1.0f, 0.0f };
