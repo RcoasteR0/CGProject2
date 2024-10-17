@@ -5,7 +5,7 @@
 #include <cmath>
 #include "Shader.h"
 
-#define Quiz11
+#define Quiz12
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define FPS 60
@@ -77,6 +77,24 @@ public:
 	}
 
 	~Shape() {}
+
+	float MiddleX()
+	{
+		float sum = 0.0f;
+		for (int i = 0; i < points; ++i)
+			sum += shapecoord[i][0];
+
+		return sum / points;
+	}
+
+	float MiddleY()
+	{
+		float sum = 0.0f;
+		for (int i = 0; i < points; ++i)
+			sum += shapecoord[i][1];
+
+		return sum / points;
+	}
 
 	void Draw(int i)
 	{
@@ -241,6 +259,7 @@ void Initialize()
 	bGCr = 1.0, bGCg = 1.0, bGCb = 1.0;
 }
 #endif // Quiz10
+
 #ifdef Quiz11
 enum Drawtype{ ALL, LINE, TRIANGLE, RECTANGLE, PENTAGON };
 Shape shapes[4];
@@ -267,6 +286,13 @@ void Initialize()
 	timer = 0.0f;
 }
 #endif // Quiz11
+
+#ifdef Quiz12
+Shape MergeShape(Shape shape1, Shape shape2)
+{
+
+}
+#endif // Quiz12
 
 void main(int argc, char** argv)
 {
