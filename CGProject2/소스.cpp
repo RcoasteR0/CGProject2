@@ -415,9 +415,28 @@ GLvoid drawScene()
 	}
 #endif // Quiz10
 #ifdef Quiz11
-	for (int i = 0; i < 4; i++)
+	switch (type)
 	{
-		shapes[i].Draw(i);
+	case ALL:
+		for (int i = 0; i < 4; i++)
+		{
+			shapes[i].Draw(i);
+		}
+		break;
+	case LINE:
+		shapes[0].Draw(0);
+		break;
+	case TRIANGLE:
+		shapes[1].Draw(1);
+		break;
+	case RECTANGLE:
+		shapes[2].Draw(2);
+		break;
+	case PENTAGON:
+		shapes[3].Draw(3);
+		break;
+	default:
+		break;
 	}
 #endif // Quiz11
 
@@ -657,6 +676,18 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 	{
 	case 'l':
 		type = LINE;
+		break;
+	case 't':
+		type = TRIANGLE;
+		break;
+	case 'r':
+		type = RECTANGLE;
+		break;
+	case 'p':
+		type = PENTAGON;
+		break;
+	case 'a':
+		type = ALL;
 		break;
 	case 'c':
 		Initialize();
