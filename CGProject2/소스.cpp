@@ -245,11 +245,11 @@ void Initialize()
 enum Drawtype{ ALL, LINE, TRIANGLE, RECTANGLE, PENTAGON };
 Shape shapes[4];
 Drawtype type;
-int timer;
+float timer;
 
 void Initialize()
 {
-	GLfloat temp1[6][3] = { { -0.75f, 0.25f, 0.0f }, { -0.25f, 0.75f, 0.0f }, { -0.25f, 0.74f, 0.0f } };
+	GLfloat temp1[6][3] = { { -0.75f, 0.25f, 0.0f }, { -0.749f, 0.25f, 0.0f }, { -0.25f, 0.74f, 0.0f }, { -0.25f, 0.75f, 0.0f } };
 	GLfloat temp2[6][3] = { { 0.25f, 0.25f, 0.0f }, { 0.75f, 0.25f, 0.0f }, { 0.75f, 0.75f, 0.0f }, { 0.75f, 0.75f, 0.0f } };
 	GLfloat temp3[6][3] = { { -0.75f, -0.75f, 0.0f }, { -0.25f, -0.75f, 0.0f }, { -0.25f, -0.5f, 0.0f }, { -0.5f, -0.5f, 0.0f }, { -0.75f, -0.5f, 0.0f } };
 	GLfloat temp4[6][3] = { { 0.4f, -0.75f, 0.0f }, { 0.6f, -0.75f, 0.0f }, { 0.75f, -0.5f, 0.0f }, { 0.5f, -0.25f, 0.0f }, { 0.25f, -0.5f, 0.0f } };
@@ -258,13 +258,13 @@ void Initialize()
 	GLfloat yellow[3] = { 1.0f, 1.0f, 0.0f };
 	GLfloat magenta[3] = { 1.0f, 0.0f, 1.0f };
 
-	shapes[0] = Shape(3, temp1, red);
+	shapes[0] = Shape(4, temp1, red);
 	shapes[1] = Shape(4, temp2, blue);
 	shapes[2] = Shape(5, temp3, yellow);
 	shapes[3] = Shape(5, temp4, magenta);
 
 	type = ALL;
-	timer = 0;
+	timer = 0.0f;
 }
 #endif // Quiz11
 
@@ -652,6 +652,19 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		break;
 	}
 #endif // Quiz10
+#ifdef Quiz11
+	switch (key)
+	{
+	case 'l':
+		type = LINE;
+		break;
+	case 'c':
+		Initialize();
+		break;
+	default:
+		break;
+	}
+#endif // Quiz11
 
 	if(key == 'q')
 		glutLeaveMainLoop();
@@ -1047,6 +1060,26 @@ GLvoid Timer(int value)
 		}
 	}
 #endif // Quiz10
+#ifdef Quiz11
+	shapes[0].shapecoord[2][1] = (1 - timer) * 0.74f + timer * 0.25f;
+
+	shapes[1].shapecoord[3][0] = (1 - timer) * 0.75f + timer * 0.25f;
+
+	shapes[2].shapecoord[0][0] = (1 - timer) * -0.75f + timer * -0.6f;
+	shapes[2].shapecoord[1][0] = (1 - timer) * -0.25f + timer * -0.4f;
+	shapes[2].shapecoord[3][1] = (1 - timer) * -0.5f + timer * -0.25f;
+
+	shapes[3].shapecoord[1][0] = (1 - timer) * 0.6f + timer * 0.405;
+	shapes[3].shapecoord[2][0] = (1 - timer) * 0.75f + timer * 0.505f;
+	shapes[3].shapecoord[2][1] = (1 - timer) * -0.5f + timer * -0.25f;
+	shapes[3].shapecoord[4][0] = (1 - timer) * 0.25f + timer * 0.5f;
+	shapes[3].shapecoord[4][1] = (1 - timer) * -0.5f + timer * -0.25f;
+
+	if (timer < 1.0f)
+		timer += 0.01f;
+	else
+		timer = 1.0f;
+#endif // Quiz11
 
 	glutPostRedisplay();
 	glutTimerFunc(1000 / FPS, Timer, 1);
