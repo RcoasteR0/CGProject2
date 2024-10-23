@@ -22,6 +22,7 @@ void InitBuffer();
 void Initialize();
 GLvoid Mouse(int button, int state, int x, int y);
 GLvoid Keyboard(unsigned char key, int x, int y);
+GLvoid Motion(int x, int y);
 GLvoid Timer(int value);
 
 float bGCr = 1.0, bGCg = 1.0, bGCb = 1.0;
@@ -176,14 +177,14 @@ public:
 			left = x - 0.01;
 			bottom = y - 0.01;
 			right = x + 0.01;
-			top = y - 0.01;
+			top = y + 0.01;
 		}
 		else
 		{
 			left = x - size;
 			bottom = y - size;
 			right = x + size;
-			top = y - size;
+			top = y + size;
 		}
 
 		points = state;
@@ -395,7 +396,11 @@ void Initialize()
 #ifdef Quiz12
 Shape shapes[15];
 Shape mergedshapes[8];
+float prevX = 0.0f, prevY = 0.0f;
 int mergecount;
+int dragshape;
+bool drag;
+bool merged[15];
 
 uniform_real_distribution<float> randomcoord(-0.9f, 0.9f);
 
@@ -408,8 +413,12 @@ void Initialize()
 		{
 			RandomColor(color[0], color[1], color[2]);
 			shapes[i * 3 + j] = Shape(i + 1, randomcoord(gen), randomcoord(gen), color);
+			merged[i * 3 + j] = false;
 		}
 	}
+	mergecount = 0;
+	dragshape = 0;
+	drag = false;
 }
 #endif // Quiz12
 
@@ -483,6 +492,7 @@ void main(int argc, char** argv)
 	glutDisplayFunc(drawScene);
 	glutKeyboardFunc(Keyboard);
 	glutMouseFunc(Mouse);
+	glutMotionFunc(Motion);
 	glutReshapeFunc(Reshape);
 	glutTimerFunc(1000 / FPS, Timer, 1);
 	glutMainLoop();
@@ -1088,6 +1098,31 @@ GLvoid Mouse(int button, int state, int x, int y)
 			draw = true;
 	}
 #endif // Quiz10
+#ifdef Quiz12
+	if (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN)
+	{
+		for (int i = 14; i >= 0; --i)
+		{
+			if (fx >= shapes[i].left && fx <= shapes[i].right
+				&& fy >= shapes[i].bottom && fy <= shapes[i].top)
+			{
+				drag = true;
+				dragshape = i;
+				prevX = fx;
+				prevY = fy;
+				break;
+			}
+		}
+	}
+	else if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
+	{
+		if (drag)
+		{
+			drag = false;
+		}
+	}
+#endif // Quiz12
+
 }
 
 GLvoid Timer(int value)
@@ -1267,6 +1302,31 @@ GLvoid Timer(int value)
 
 	glutPostRedisplay();
 	glutTimerFunc(1000 / FPS, Timer, 1);
+}
+
+void Motion(int x, int y)
+{
+	float fx = 0.0, fy = 0.0;
+	convertXY(x, y, fx, fy);
+
+#ifdef Quiz12
+	if (drag)
+	{
+		for (int i = 0; i < shapes[dragshape].points; ++i)
+		{
+			shapes[dragshape].shapecoord[i][0] += fx - prevX;
+			shapes[dragshape].shapecoord[i][1] += fy - prevY;
+		}
+		shapes[dragshape].left += fx - prevX;
+		shapes[dragshape].right += fx - prevX;
+		shapes[dragshape].top += fy - prevY;
+		shapes[dragshape].bottom += fy - prevY;
+		prevX = fx;
+		prevY = fy;
+	}
+#endif // Quiz12
+
+	glutPostRedisplay();
 }
 
 void InitBuffer()
