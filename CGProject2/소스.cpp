@@ -5,7 +5,7 @@
 #include <cmath>
 #include "Shader.h"
 
-#define Quiz11
+#define Quiz12
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define FPS 60
@@ -38,8 +38,9 @@ struct Old_Shape
 class Shape
 {
 public:
-	GLfloat shapecoord[6][3];
-	GLfloat shapecolor[6][3];
+	GLfloat shapecoord[6][3] = {};
+	GLfloat shapecolor[6][3] = {};
+	float left, bottom, right, top;
 	int points;
 
 	Shape()
@@ -52,16 +53,19 @@ public:
 				shapecolor[i][j] = 0.0f;
 			}
 		}
+		left = 0.0f, bottom = 0.0f, right = 0.0f, top = 0.0f;
 		points = 0;
 	}
 
 	Shape(int state, GLfloat coord[][3], GLfloat color[3])
 	{
+		left = FLT_MAX, bottom = FLT_MAX;
+		right = FLT_MIN, top = FLT_MIN;
 		for (int i = 0; i < 6; ++i)
 		{
 			for (int j = 0; j < 3; ++j)
 			{
-				if (i > state)
+				if (i >= state)
 				{
 					shapecoord[i][j] = 0.0f;
 					shapecolor[i][j] = 0.0f;
@@ -72,7 +76,116 @@ public:
 					shapecolor[i][j] = color[j];
 				}
 			}
+
+			if (shapecoord[i][0] <= left && i < state)
+				left = shapecoord[i][0];
+			if (shapecoord[i][1] <= bottom && i < state)
+				bottom = shapecoord[i][1];
+			if (shapecoord[i][0] >= right && i < state)
+				right = shapecoord[i][0];
+			if (shapecoord[i][1] >= top && i < state)
+				top = shapecoord[i][1];
+
 		}
+		points = state;
+	}
+
+	Shape(int state, float x, float y, GLfloat color[3], float size = 0.1f)
+	{
+		switch (state)
+		{
+		case 1:
+			shapecoord[0][0] = x;
+			shapecoord[0][1] = y;
+			break;
+		case 2:
+			shapecoord[0][0] = x - size;
+			shapecoord[0][1] = y - size;
+
+			shapecoord[1][0] = x + size;
+			shapecoord[1][1] = y + size;
+			break;
+		case 3:
+			shapecoord[0][0] = x - size;
+			shapecoord[0][1] = y - size;
+
+			shapecoord[1][0] = x + size;
+			shapecoord[1][1] = y - size;
+
+			shapecoord[2][0] = x;
+			shapecoord[2][1] = y + size;
+			break;
+		case 4:
+			shapecoord[0][0] = x - size;
+			shapecoord[0][1] = y - size;
+
+			shapecoord[1][0] = x + size;
+			shapecoord[1][1] = y - size;
+
+			shapecoord[2][0] = x + size;
+			shapecoord[2][1] = y + size;
+
+			shapecoord[3][0] = x - size;
+			shapecoord[3][1] = y + size;
+			break;
+		case 5:
+			shapecoord[0][0] = x - size / 2;
+			shapecoord[0][1] = y - size;
+
+			shapecoord[1][0] = x + size / 2;
+			shapecoord[1][1] = y - size;
+
+			shapecoord[2][0] = x + size;
+			shapecoord[2][1] = y;
+
+			shapecoord[3][0] = x;
+			shapecoord[3][1] = y + size;
+
+			shapecoord[4][0] = x - size;
+			shapecoord[4][1] = y;
+			break;
+		case 6:
+			shapecoord[0][0] = x - size / 2;
+			shapecoord[0][1] = y - size;
+
+			shapecoord[1][0] = x + size / 2;
+			shapecoord[1][1] = y - size;
+
+			shapecoord[2][0] = x + size;
+			shapecoord[2][1] = y;
+
+			shapecoord[3][0] = x + size / 2;
+			shapecoord[3][1] = y + size;
+
+			shapecoord[4][0] = x - size / 2;
+			shapecoord[4][1] = y + size;
+
+			shapecoord[5][0] = x - size;
+			shapecoord[5][1] = y;
+			break;
+		default:
+			break;
+		}
+
+		for (int i = 0; i < 6; ++i)
+			for (int j = 0; j < 3; ++j)
+				shapecolor[i][j] = color[j];
+
+		if (state == 1)
+		{
+			left = x - 0.01;
+			bottom = y - 0.01;
+			right = x + 0.01;
+			top = y - 0.01;
+		}
+		else
+		{
+			left = x - size;
+			bottom = y - size;
+			right = x + size;
+			top = y - size;
+		}
+
 		points = state;
 	}
 
@@ -80,7 +193,17 @@ public:
 
 	void Draw(int i)
 	{
-		glDrawElements(GL_TRIANGLE_FAN, points, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(GLuint)));
+		if (points == 1)
+		{
+			glPointSize(5.0);
+			glDrawElements(GL_POINTS, 1, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(GLuint)));
+		}
+		else if (points == 2)
+		{
+			glDrawElements(GL_LINES, 2, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(GLuint)));
+		}
+		else
+			glDrawElements(GL_TRIANGLE_FAN, points, GL_UNSIGNED_INT, (void*)(i * 6 * sizeof(GLuint)));
 	}
 };
 
@@ -241,6 +364,7 @@ void Initialize()
 	bGCr = 1.0, bGCg = 1.0, bGCb = 1.0;
 }
 #endif // Quiz10
+
 #ifdef Quiz11
 enum Drawtype{ ALL, LINE, TRIANGLE, RECTANGLE, PENTAGON };
 Shape shapes[4];
@@ -267,6 +391,27 @@ void Initialize()
 	timer = 0.0f;
 }
 #endif // Quiz11
+
+#ifdef Quiz12
+Shape shapes[15];
+Shape mergedshapes[8];
+int mergecount;
+
+uniform_real_distribution<float> randomcoord(-0.9f, 0.9f);
+
+void Initialize()
+{
+	GLfloat color[3] = {};
+	for (int i = 0; i < 5; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			RandomColor(color[0], color[1], color[2]);
+			shapes[i * 3 + j] = Shape(i + 1, randomcoord(gen), randomcoord(gen), color);
+		}
+	}
+}
+#endif // Quiz12
 
 void main(int argc, char** argv)
 {
@@ -439,6 +584,10 @@ GLvoid drawScene()
 		break;
 	}
 #endif // Quiz11
+#ifdef Quiz12
+	for (int i = 0; i < 15; ++i)
+		shapes[i].Draw(i);
+#endif // Quiz12
 
 	glutSwapBuffers();
 }
@@ -696,6 +845,10 @@ GLvoid Keyboard(unsigned char key, int x, int y)
 		break;
 	}
 #endif // Quiz11
+#ifdef Quiz12
+	if (key == 'r')
+		Initialize();
+#endif // Quiz12
 
 	if(key == 'q')
 		glutLeaveMainLoop();
@@ -1143,6 +1296,10 @@ void InitBuffer()
 #ifdef Quiz11
 	glBufferData(GL_ARRAY_BUFFER, 4 * 18 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
 #endif // Quiz11
+#ifdef Quiz12
+	glBufferData(GL_ARRAY_BUFFER, 23 * 18 * sizeof(GLfloat), NULL, GL_DYNAMIC_DRAW);
+#endif // Quiz12
+
 
 	//--- 좌표값을 attribute 인덱스 0번에 명시한다: 버텍스 당 3* float
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -1224,6 +1381,9 @@ void InitBuffer()
 		glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 18 * sizeof(GLfloat), colors);
 	}
 #endif // Quiz11
+#ifdef Quiz12
+	glBufferData(GL_ARRAY_BUFFER, 23 * 18 * sizeof(GLfloat), NULL, GL_STATIC_DRAW);
+#endif // Quiz12
 
 	//--- 색상값을 attribute 인덱스 1번에 명시한다: 버텍스 당 3*float
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -1290,6 +1450,16 @@ void InitBuffer()
 	}
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 #endif // Quiz11
+#ifdef Quiz12
+	glGenBuffers(1, &ebo);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+	GLuint indices[23 * 6];
+	for (int i = 0; i < 23 * 6; i++)
+	{
+		indices[i] = i;
+	}
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+#endif // Quiz12
 
 }
 
@@ -1355,5 +1525,17 @@ void UpdateBuffer()
 		glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 18 * sizeof(GLfloat), shapes[i].shapecolor);
 	}
 #endif Quiz11
+#ifdef Quiz12
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[0]);
+	for (int i = 0; i < 15; i++)
+	{
+		glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 18 * sizeof(GLfloat), shapes[i].shapecoord);
+	}
+	glBindBuffer(GL_ARRAY_BUFFER, vbo[1]);
+	for (int i = 0; i < 15; i++)
+	{
+		glBufferSubData(GL_ARRAY_BUFFER, i * 18 * sizeof(GLfloat), 18 * sizeof(GLfloat), shapes[i].shapecolor);
+	}
+#endif Quiz12
 
 }
